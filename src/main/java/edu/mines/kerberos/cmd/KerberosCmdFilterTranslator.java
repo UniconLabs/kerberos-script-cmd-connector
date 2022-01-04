@@ -27,7 +27,12 @@ import org.identityconnectors.framework.common.objects.filter.EqualsIgnoreCaseFi
 import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 import org.identityconnectors.framework.common.objects.filter.StringFilter;
 
-public class CmdFilterTranslator extends AbstractFilterTranslator<Operand>{
+
+/**
+ * KerberosCmdFilterTranslator
+ *   Used by the original CMD connector, possibly not used depending.
+ */
+public class KerberosCmdFilterTranslator extends AbstractFilterTranslator<Operand>{
     @Override
     protected Operand createEqualsIgnoreCaseExpression(final EqualsIgnoreCaseFilter filter, final boolean not) {
         return createOperand(Operator.EQ, filter, not);
@@ -83,5 +88,4 @@ public class CmdFilterTranslator extends AbstractFilterTranslator<Operand>{
                 return null;
         }
     }
-
 }

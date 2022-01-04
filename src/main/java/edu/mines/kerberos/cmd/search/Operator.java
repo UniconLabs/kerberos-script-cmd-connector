@@ -15,6 +15,9 @@
  */
 package edu.mines.kerberos.cmd.search;
 
+/**
+ *  Operator
+ */
 public enum Operator {
 
     EQ("="),

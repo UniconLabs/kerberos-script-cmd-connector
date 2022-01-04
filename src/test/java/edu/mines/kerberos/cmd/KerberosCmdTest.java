@@ -19,11 +19,14 @@ import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class CmdTest extends AbstractTest {
+/**
+ *  KerberosCmdTest
+ */
+public class KerberosCmdTest extends KerberosCmdAbstractTest {
 
     @Test
     public final void testConnection() {
-        final CmdConnector connector = new CmdConnector();
+        final KerberosCmdConnector connector = new KerberosCmdConnector();
         connector.init(createConfiguration());
         connector.test();
         connector.dispose();
@@ -31,8 +34,8 @@ public class CmdTest extends AbstractTest {
 
     @Test
     public final void testWrongConnection() {
-        final CmdConnector connector = new CmdConnector();
-        CmdConfiguration cmdConfiguration = createConfiguration();
+        final KerberosCmdConnector connector = new KerberosCmdConnector();
+        KerberosCmdConfiguration cmdConfiguration = createConfiguration();
         cmdConfiguration.setTestCmdPath("/tmp/wrong.sh");
         connector.init(cmdConfiguration);
         Exception expectedEx = assertThrows(ConnectorException.class, () ->

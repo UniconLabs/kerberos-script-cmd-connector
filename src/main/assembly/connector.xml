@@ -34,14 +34,16 @@
       <directory>target/classes</directory>
       <outputDirectory></outputDirectory>
     </fileSet>
-
-    <fileSet>
-      <directory>${basedir}</directory>
-      <includes>
-        <include>LICENSE</include>
-      </includes>
-      <outputDirectory>META-INF</outputDirectory>
-    </fileSet>
   </fileSets>
 
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory>lib</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <scope>runtime</scope>
+      <excludes>
+        <exclude>net.tirasa.connid:connector-framework</exclude>
+      </excludes>
+    </dependencySet>
+  </dependencySets>
 </assembly>

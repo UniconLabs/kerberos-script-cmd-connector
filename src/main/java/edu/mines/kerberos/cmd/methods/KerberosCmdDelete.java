@@ -17,20 +17,24 @@ package edu.mines.kerberos.cmd.methods;
 
 import java.util.ArrayList;
 import java.util.List;
-import edu.mines.kerberos.cmd.CmdConfiguration;
-import org.identityconnectors.common.Pair;
+import edu.mines.kerberos.cmd.KerberosCmdConfiguration;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.Uid;
 
-public class CmdDelete extends CmdExec {
 
-    private static final Log LOG = Log.getLog(CmdDelete.class);
+/**
+ *  KerberosCmdDelete
+ *     Provides the Delete functionality
+ */
+public class KerberosCmdDelete extends KerberosCmdExec {
+
+    private static final Log LOG = Log.getLog(KerberosCmdDelete.class);
 
     private final Uid uid;
 
-    public CmdDelete(final ObjectClass oc, final CmdConfiguration cmdConfiguration, final Uid uid) {
-        super(oc, cmdConfiguration);
+    public KerberosCmdDelete(final ObjectClass oc, final KerberosCmdConfiguration kerberosCmdConfiguration, final Uid uid) {
+        super(oc, kerberosCmdConfiguration);
 
         this.uid = uid;
     }
@@ -38,21 +42,18 @@ public class CmdDelete extends CmdExec {
     public void execDeleteCmd() {
         LOG.info("Executing deletion for {0}", uid);
 
-        waitFor(exec(cmdConfiguration.getDeleteCmdPath(), createEnv()));
+        scriptExecuteSuccess(execScriptCmd(kerberosCmdConfiguration.getScriptCmdPath(), createDeleteUserCommand(), null));
     }
 
-    private List<Pair<String, String>> createEnv() {
-        LOG.ok("Creating environment for deletion with:");
+    private List<String> createDeleteUserCommand() {
+        LOG.ok("Creating parameters for deletion with: ");
         LOG.ok("ObjectClass: {0}", oc.getObjectClassValue());
-        LOG.ok("Environment variable {0}: {1}", uid.getName(), uid.getUidValue());
+        LOG.ok("User {0}: {1}", uid.getName(), uid.getUidValue());
 
-        List<Pair<String, String>> env = new ArrayList<>();
-        env.add(new Pair<>(CmdConfiguration.OBJECT_CLASS, oc.getObjectClassValue()));
-        env.add(new Pair<>(uid.getName(), uid.getUidValue()));
-        
-        if (cmdConfiguration.isServerInfoEnv()) {
-            env.addAll(getConfigurationEnvs(cmdConfiguration));
-        }
-        return env;
+        final List<String> deleteUserCommand = new ArrayList<>();
+        deleteUserCommand.add(KerberosCmdConfiguration.SCRIPT_DELETE_FLAG);
+        deleteUserCommand.add(uid.getUidValue());
+
+        return deleteUserCommand;
     }
 }

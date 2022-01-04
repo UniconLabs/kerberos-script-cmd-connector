@@ -23,29 +23,18 @@
   <modelVersion>4.0.0</modelVersion>
   
   <parent>
-    <groupId>net.tirasa.connid</groupId>
-    <artifactId>connid</artifactId>
-    <version>1.5.0.2</version>
+      <artifactId>connector-parent</artifactId>
+      <groupId>com.evolveum.polygon</groupId>
+      <version>1.5.0.0</version>
+      <relativePath></relativePath>
   </parent>
     
-  <groupId>edu.mines.kerberos.cmd</groupId>
+  <groupId>edu.mines.kerberos</groupId>
   <artifactId>connector-kerberos-script</artifactId>
   <version>1.0</version>
-    
-  <name>Mines Kerberos: CMD</name>
-
   <packaging>jar</packaging>
-  
-  <url>https://mines.edu</url>
-  <inceptionYear>2021</inceptionYear>
 
-  <licenses>
-    <license>
-      <name>The Apache Software License, Version 2.0</name>
-      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
+  <name>Mines Kerberos Scripted CMD Connector</name>
 
   <properties>
     <connid.version>1.5.0.2</connid.version>
@@ -56,6 +45,19 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <junit.version>5.8.2</junit.version>
   </properties>
+
+  <repositories>
+      <repository>
+          <id>evolveum-nexus-releases</id>
+          <name>Internal Releases</name>
+          <url>http://nexus.evolveum.com/nexus/content/repositories/releases/</url>
+      </repository>
+      <repository>
+          <id>evolveum-nexus-snapshots</id>
+          <name>Internal Releases</name>
+          <url>http://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+      </repository>
+  </repositories>
 
   <dependencies>
     <dependency>

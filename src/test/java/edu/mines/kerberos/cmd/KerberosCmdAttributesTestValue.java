@@ -18,7 +18,11 @@ package edu.mines.kerberos.cmd;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 
-public class AttributesTestValue extends AbstractTest {
+
+/**
+ * KerberosCmdAttributesTestValue
+ */
+public class KerberosCmdAttributesTestValue extends KerberosCmdAbstractTest {
 
     private static final String WRONG_USERNAME = "wronguser";
 

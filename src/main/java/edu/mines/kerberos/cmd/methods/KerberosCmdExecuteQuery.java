@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import edu.mines.kerberos.cmd.CmdConfiguration;
+import edu.mines.kerberos.cmd.KerberosCmdConfiguration;
 import edu.mines.kerberos.cmd.search.Operand;
 import org.identityconnectors.common.Pair;
 import org.identityconnectors.common.StringUtil;
@@ -38,9 +38,14 @@ import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Uid;
 
-public class CmdExecuteQuery extends CmdExec {
 
-    private static final Log LOG = Log.getLog(CmdExecuteQuery.class);
+/**
+ *  KerberosCmdExecuteQuery
+ *    Provides the Search operation
+ */
+public class KerberosCmdExecuteQuery extends KerberosCmdExec {
+
+    private static final Log LOG = Log.getLog(KerberosCmdExecuteQuery.class);
 
     private static final String ITEM_SEPARATOR = "--- NEW SEARCH RESULT ITEM ---";
 
@@ -48,9 +53,9 @@ public class CmdExecuteQuery extends CmdExec {
 
     private final ResultsHandler resultsHandler;
 
-    public CmdExecuteQuery(final ObjectClass oc, final CmdConfiguration cmdConfiguration, final Operand filter,
-                           final ResultsHandler rh) {
-        super(oc, cmdConfiguration);
+    public KerberosCmdExecuteQuery(final ObjectClass oc, final KerberosCmdConfiguration kerberosCmdConfiguration, final Operand filter,
+                                   final ResultsHandler rh) {
+        super(oc, kerberosCmdConfiguration);
 
         this.filter = filter;
         this.resultsHandler = rh;
@@ -58,47 +63,47 @@ public class CmdExecuteQuery extends CmdExec {
 
     public void execQuery() throws ConnectException {
         final Process proc;
-
-        if (filter == null) {
-            LOG.ok("Full search (no filter) ...");
-            proc = exec(cmdConfiguration.getSearchCmdPath(),
-                    cmdConfiguration.isServerInfoEnv() ? getConfigurationEnvs(cmdConfiguration) : null);
-            readOutput(proc);
-        } else {
-            LOG.ok("Search with filter {0} ...", filter);
-            proc = exec(cmdConfiguration.getSearchCmdPath(), createEnv());
-            switch (filter.getOperator()) {
-                case EQ:
-                case SW:
-                case EW:
-                case C:
-                    readOutput(proc);
-                case OR:
-                    break;
-                case AND:
-                    break;
-                default:
-                    throw new ConnectorException("Wrong Operator");
-            }
-        }
-
-        waitFor(proc);
+//TODO  args: sl
+//        if (filter == null) {
+//            LOG.ok("Full search (no filter) ...");
+//            proc = exec(kerberosCmdConfiguration.getSearchCmdPath(),
+//                    kerberosCmdConfiguration.isServerInfoEnv() ? getConfigurationEnvs(kerberosCmdConfiguration) : null);
+//            readOutput(proc);
+//        } else {
+//            LOG.ok("Search with filter {0} ...", filter);
+//            proc = exec(kerberosCmdConfiguration.getSearchCmdPath(), createEnv());
+//            switch (filter.getOperator()) {
+//                case EQ:
+//                case SW:
+//                case EW:
+//                case C:
+//                    readOutput(proc);
+//                case OR:
+//                    break;
+//                case AND:
+//                    break;
+//                default:
+//                    throw new ConnectorException("Wrong Operator");
+//            }
+//        }
+//
+//        waitFor(proc);
     }
 
     private List<Pair<String, String>> createEnv() {
         List<Pair<String, String>> attributes = new ArrayList<>();
 
         LOG.ok("Creating environment for search with:");
-        LOG.ok(CmdConfiguration.OBJECT_CLASS + ": {0}", oc.getObjectClassValue());
+        LOG.ok(KerberosCmdConfiguration.OBJECT_CLASS + ": {0}", oc.getObjectClassValue());
         LOG.ok("Query filter {0}= {1}", filter.getAttributeName(), filter.getAttributeValue());
 
         attributes.add(new Pair<>(filter.getAttributeName(), filter.getAttributeValue()));
-        attributes.add(new Pair<>(CmdConfiguration.OBJECT_CLASS, oc.getObjectClassValue()));
-        attributes.add(new Pair<>(CmdConfiguration.CMD_OPERATOR, filter.getOperator().toString()));
-
-        if (cmdConfiguration.isServerInfoEnv()) {
-            attributes.addAll(getConfigurationEnvs(cmdConfiguration));
-        }
+        attributes.add(new Pair<>(KerberosCmdConfiguration.OBJECT_CLASS, oc.getObjectClassValue()));
+//        attributes.add(new Pair<>(KerberosCmdConfiguration.CMD_OPERATOR, filter.getOperator().toString()));
+//TODO
+//        if (kerberosCmdConfiguration.isServerInfoEnv()) {
+//            attributes.addAll(getConfigurationEnvs(kerberosCmdConfiguration));
+//        }
         
         return attributes;
     }

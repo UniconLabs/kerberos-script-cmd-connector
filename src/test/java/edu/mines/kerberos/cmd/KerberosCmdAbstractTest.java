@@ -26,7 +26,11 @@ import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.Name;
 import org.junit.jupiter.api.BeforeEach;
 
-public class AbstractTest {
+
+/**
+ *  KerberosCmdAbstractTest
+ */
+public class KerberosCmdAbstractTest {
 
     private static File SCRIPT;
 
@@ -42,26 +46,25 @@ public class AbstractTest {
         writer.close();
     }
 
-    protected CmdConfiguration createConfiguration() {
+    protected KerberosCmdConfiguration createConfiguration() {
         // create the connector configuration..
-        CmdConfiguration config = new CmdConfiguration();
+        final KerberosCmdConfiguration config = new KerberosCmdConfiguration();
         config.setTestCmdPath(SCRIPT.getAbsolutePath());
-        config.setCreateCmdPath(SCRIPT.getAbsolutePath());
-        config.setUpdateCmdPath(SCRIPT.getAbsolutePath());
-        config.setDeleteCmdPath(SCRIPT.getAbsolutePath());
-        config.setSearchCmdPath(SCRIPT.getAbsolutePath());
+        config.setScriptCmdPath(SCRIPT.getAbsolutePath());
+
         return config;
     }
 
     protected Set<Attribute> createSetOfAttributes(final Name name, final String password, final boolean status) {
-        AttributesTestValue attrs = new AttributesTestValue();
-        GuardedString encPassword = password == null
+        final KerberosCmdAttributesTestValue attrs = new KerberosCmdAttributesTestValue();
+        final GuardedString encPassword = password == null
                 ? null
                 : new GuardedString(password.toCharArray());
 
-        Set<Attribute> attributes = CollectionUtil.newSet(AttributeBuilder.buildPassword(encPassword));
+        final Set<Attribute> attributes = CollectionUtil.newSet(AttributeBuilder.buildPassword(encPassword));
         attributes.add(AttributeBuilder.buildEnabled(status));
         attributes.add(name);
+
         return attributes;
     }
 }

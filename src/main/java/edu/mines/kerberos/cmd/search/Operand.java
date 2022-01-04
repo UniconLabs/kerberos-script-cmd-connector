@@ -17,6 +17,9 @@ package edu.mines.kerberos.cmd.search;
 
 import org.identityconnectors.framework.common.objects.Uid;
 
+/**
+ *  Operand
+ */
 public class Operand {
 
     private Operator operator = null;

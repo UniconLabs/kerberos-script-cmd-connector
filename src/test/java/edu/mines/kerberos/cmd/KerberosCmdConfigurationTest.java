@@ -17,17 +17,20 @@ package edu.mines.kerberos.cmd;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
-
 import org.junit.jupiter.api.Test;
 
-public class CmdConfigurationTest extends AbstractTest {
+
+/**
+ * CmdConfigurationTest
+ */
+public class KerberosCmdConfigurationTest extends KerberosCmdAbstractTest {
 
     /**
      * Tests setting and validating the parameters provided.
      */
     @Test
     public final void testValidate() {
-        final CmdConfiguration config = new CmdConfiguration();
+        final KerberosCmdConfiguration config = new KerberosCmdConfiguration();
         try {
             config.validate();
             fail();

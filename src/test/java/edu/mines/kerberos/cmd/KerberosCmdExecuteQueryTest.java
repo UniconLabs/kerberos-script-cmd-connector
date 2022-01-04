@@ -31,20 +31,24 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-public class CmdExecuteQueryTest extends AbstractTest {
 
-    private CmdConnector connector;
+/**
+ * KerberosCmdExecuteQueryTest
+ */
+public class KerberosCmdExecuteQueryTest extends KerberosCmdAbstractTest {
+
+    private KerberosCmdConnector connector;
 
     private Name name;
 
     private Uid newAccount;
 
-    private AttributesTestValue attrs;
+    private KerberosCmdAttributesTestValue attrs;
 
     @BeforeAll
     public void initTest() {
-        attrs = new AttributesTestValue();
-        connector = new CmdConnector();
+        attrs = new KerberosCmdAttributesTestValue();
+        connector = new KerberosCmdConnector();
         connector.init(createConfiguration());
         name = new Name(attrs.getUsername());
 

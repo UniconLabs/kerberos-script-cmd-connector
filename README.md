@@ -18,28 +18,30 @@
 Kerberos Command Connector
 ==============
 
-This connector interfaces with Kerberos via an external Perl script. Under the hood it uses and extends 
- the ConnId CMD connector (Tirasa ConnIdCMDBundle) and extends it in order to invoke a Perl script for Kerberos commands and functions.
+This connector interfaces with Kerberos via an external script. Under the hood it uses and extends 
+ the ConnId CMD connector (Tirasa ConnIdCMDBundle) and extends it in order to invoke a script for Kerberos commands and functions.
 
+WIP
 
-<a href="https://github.com/Tirasa/ConnIdCMDBundle/actions/workflows/ci.yml">
-  <img src="https://github.com/Tirasa/ConnIdCMDBundle/actions/workflows/ci.yml/badge.svg"/>
-</a>
-<a href="#">
-  <img src="https://img.shields.io/maven-central/v/net.tirasa.connid.bundles/net.tirasa.connid.bundles.cmd.svg"/>
-</a>
-
-## How to get it
-
-### Maven
-
-```XML
-<dependency>
-  <groupId>net.tirasa.connid.bundles</groupId>
-  <artifactId>net.tirasa.connid.bundles.cmd</artifactId>
-  <version>${connid.cmd.version}</version>
-</dependency>
+```xml
+        <icfc:resultsHandlerConfiguration>
+            <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+            <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+            <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+        </icfc:resultsHandlerConfiguration>
+        <icfc:timeouts>
+            <icfc:create>180000</icfc:create>
+            <icfc:get>180000</icfc:get>
+            <icfc:update>180000</icfc:update>
+            <icfc:delete>180000</icfc:delete>
+            <icfc:test>60000</icfc:test>
+            <icfc:scriptOnConnector>180000</icfc:scriptOnConnector>
+            <icfc:scriptOnResource>180000</icfc:scriptOnResource>
+            <icfc:authentication>60000</icfc:authentication>
+            <icfc:search>180000</icfc:search>
+            <icfc:validate>180000</icfc:validate>
+            <icfc:sync>180000</icfc:sync>
+            <icfc:schema>60000</icfc:schema>
+        </icfc:timeouts>
 ```
-
-where `connid.cmd.version` is one of [available](http://repo1.maven.org/maven2/net/tirasa/connid/bundles/net.tirasa.connid.bundles.cmd/).
 
