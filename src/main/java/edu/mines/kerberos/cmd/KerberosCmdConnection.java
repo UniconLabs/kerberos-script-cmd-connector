@@ -44,6 +44,8 @@ public class KerberosCmdConnection {
         LOG.info("KerberosScript executing script {0} {1}", command, env);
 
         final ProcessBuilder builder = new ProcessBuilder(command); //script path and arguments are in the command
+        builder.redirectErrorStream(KerberosCmdConfiguration.shouldRedirectErrorOutput);
+
         if (env != null) {
             for (Pair<String, String> entry : env) {
                 builder.environment().put(entry.first, entry.second); //this sets up environment variables, this is how the traditional CMD connector passed attributes to the CMD/Script

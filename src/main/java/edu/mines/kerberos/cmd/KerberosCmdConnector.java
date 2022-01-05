@@ -159,6 +159,13 @@ public class KerberosCmdConnector implements Connector, SchemaOp, CreateOp, Upda
 
             attributes.add(OperationalAttributeInfos.PASSWORD);
 
+            final AttributeInfoBuilder attrBuilder0 = new AttributeInfoBuilder();
+            attrBuilder0.setName(KerberosCmdConfiguration.SCRIPT_USER_NAME_ATTRIBUTE_NAME);
+            attrBuilder0.setRequired(true);
+            attrBuilder0.setType(String.class);
+            attrBuilder0.setMultiValued(false);
+            attributes.add(attrBuilder0.build());
+
             final AttributeInfoBuilder attrBuilder1 = new AttributeInfoBuilder();
             attrBuilder1.setName(KerberosCmdConfiguration.SCRIPT_PASSWORD_ATTRIBUTE_NAME);
             attrBuilder1.setRequired(false);

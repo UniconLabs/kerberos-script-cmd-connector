@@ -54,21 +54,21 @@ public class KerberosCmdCreate extends KerberosCmdExec {
         }
         LOG.info("Executing creation for {0}", name.getNameValue());
 
-       scriptExecuteSuccess(execScriptCmd(kerberosCmdConfiguration.getScriptCmdPath(), createAddUserCommand(name, gpasswd), null));
+       scriptExecuteSuccess(execScriptCmd(kerberosCmdConfiguration.getScriptCmdPath(), createAddUserParameters(name, gpasswd), null));
 
         return new Uid(name.getNameValue());
     }
 
-    private List<String> createAddUserCommand(final Name name, final GuardedString password) {
+    private List<String> createAddUserParameters(final Name name, final GuardedString password) {
         LOG.ok("Creating parameters for addition with: ");
         LOG.ok("ObjectClass: {0}", oc.getObjectClassValue());
         LOG.ok("User {0}", name.getNameValue());
 
-        final List<String> addUserCommand = new ArrayList<>();
-        addUserCommand.add(KerberosCmdConfiguration.SCRIPT_CREATE_FLAG);
-        addUserCommand.add(name.getNameValue());
-        addUserCommand.add(SecurityUtil.decrypt(password));
+        final List<String> addUserParams = new ArrayList<>();
+        addUserParams.add(KerberosCmdConfiguration.SCRIPT_CREATE_FLAG);
+        addUserParams.add(formatUsername(name.getNameValue()));
+        addUserParams.add(SecurityUtil.decrypt(password));
 
-        return addUserCommand;
+        return addUserParams;
     }
 }

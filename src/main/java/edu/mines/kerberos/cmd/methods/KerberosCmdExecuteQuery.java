@@ -19,24 +19,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ConnectException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import edu.mines.kerberos.cmd.KerberosCmdConfiguration;
 import edu.mines.kerberos.cmd.search.Operand;
-import org.identityconnectors.common.Pair;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
-import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.framework.common.exceptions.ConnectorException;
-import org.identityconnectors.framework.common.objects.AttributeBuilder;
-import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
-import org.identityconnectors.framework.common.objects.Name;
-import org.identityconnectors.framework.common.objects.ObjectClass;
-import org.identityconnectors.framework.common.objects.OperationalAttributes;
-import org.identityconnectors.framework.common.objects.ResultsHandler;
-import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.framework.common.objects.*;
 
 
 /**
@@ -46,8 +34,6 @@ import org.identityconnectors.framework.common.objects.Uid;
 public class KerberosCmdExecuteQuery extends KerberosCmdExec {
 
     private static final Log LOG = Log.getLog(KerberosCmdExecuteQuery.class);
-
-    private static final String ITEM_SEPARATOR = "--- NEW SEARCH RESULT ITEM ---";
 
     private final Operand filter;
 
@@ -63,52 +49,41 @@ public class KerberosCmdExecuteQuery extends KerberosCmdExec {
 
     public void execQuery() throws ConnectException {
         final Process proc;
-//TODO  args: sl
-//        if (filter == null) {
-//            LOG.ok("Full search (no filter) ...");
-//            proc = exec(kerberosCmdConfiguration.getSearchCmdPath(),
-//                    kerberosCmdConfiguration.isServerInfoEnv() ? getConfigurationEnvs(kerberosCmdConfiguration) : null);
-//            readOutput(proc);
-//        } else {
-//            LOG.ok("Search with filter {0} ...", filter);
-//            proc = exec(kerberosCmdConfiguration.getSearchCmdPath(), createEnv());
-//            switch (filter.getOperator()) {
-//                case EQ:
-//                case SW:
-//                case EW:
-//                case C:
-//                    readOutput(proc);
-//                case OR:
-//                    break;
-//                case AND:
-//                    break;
-//                default:
-//                    throw new ConnectorException("Wrong Operator");
-//            }
-//        }
-//
-//        waitFor(proc);
+
+        proc = execScriptCmd(kerberosCmdConfiguration.getScriptCmdPath(), createSearchParameters(), null);
+        readSearchOutput(proc);
     }
 
-    private List<Pair<String, String>> createEnv() {
-        List<Pair<String, String>> attributes = new ArrayList<>();
+    private List<String> createSearchParameters() {
+        final List<String> createSearchParams = new ArrayList<>();
 
-        LOG.ok("Creating environment for search with:");
-        LOG.ok(KerberosCmdConfiguration.OBJECT_CLASS + ": {0}", oc.getObjectClassValue());
-        LOG.ok("Query filter {0}= {1}", filter.getAttributeName(), filter.getAttributeValue());
+        if (filter != null) {
+            LOG.ok("Search with filter {0} ...", filter);
+            LOG.ok("Creating parameters for search with: ");
+            LOG.ok(KerberosCmdConfiguration.OBJECT_CLASS + ": {0}", oc.getObjectClassValue());
+            LOG.ok("Query filter {0}= {1}", filter.getAttributeName(), filter.getAttributeValue());
+            createSearchParams.add(KerberosCmdConfiguration.SCRIPT_SHOW_DETAILS_FLAG);
+            createSearchParams.add(formatUsername(filter.getAttributeValue()));
 
-        attributes.add(new Pair<>(filter.getAttributeName(), filter.getAttributeValue()));
-        attributes.add(new Pair<>(KerberosCmdConfiguration.OBJECT_CLASS, oc.getObjectClassValue()));
-//        attributes.add(new Pair<>(KerberosCmdConfiguration.CMD_OPERATOR, filter.getOperator().toString()));
-//TODO
-//        if (kerberosCmdConfiguration.isServerInfoEnv()) {
-//            attributes.addAll(getConfigurationEnvs(kerberosCmdConfiguration));
-//        }
-        
-        return attributes;
+        } else {
+            LOG.ok("Full search (no filter) ...");
+            createSearchParams.add(KerberosCmdConfiguration.SCRIPT_LIST_ALL_USERS_FLAG);
+            createSearchParams.add(KerberosCmdConfiguration.SCRIPT_SHOW_DETAILS_FLAG);
+        }
+
+        return createSearchParams;
     }
 
-    private void fillUserHandler(final String searchScriptOutput) throws ConnectException {
+    //TODO This is hard-coded to the Kerberos perl script to ignore words in front of single result as well flags on newlines
+    private ConnectorObject processSingleResult(final String searchScriptOutput) throws ConnectException {
+        if (StringUtil.isNotBlank(searchScriptOutput)) {
+            return processSearchResult(searchScriptOutput.split(KerberosCmdConfiguration.SCRIPT_SINGLE_RESULT_HEADER)[1].replace(System.lineSeparator(), ""));
+        } else {
+            return processSearchResult(searchScriptOutput);
+        }
+    }
+
+    private ConnectorObject processSearchResult(final String searchScriptOutput) throws ConnectException {
         if (searchScriptOutput == null || searchScriptOutput.isEmpty()) {
             throw new ConnectException("No results found");
         }
@@ -116,55 +91,54 @@ public class KerberosCmdExecuteQuery extends KerberosCmdExec {
         final Properties attrs = StringUtil.toProperties(searchScriptOutput);
 
         final ConnectorObjectBuilder bld = new ConnectorObjectBuilder();
+        for (final Map.Entry<Object, Object> attr : attrs.entrySet()) {
+            final String username = attr.getKey().toString();
+            final String userdata = attr.getValue().toString();
+            boolean isUserLocked = false;
 
-        for (Map.Entry<Object, Object> attr : attrs.entrySet()) {
-            final String name = attr.getKey().toString();
-            final String value = attr.getValue().toString();
+            if (StringUtil.isNotBlank(username)) {
+                bld.setName(username);
+                bld.setUid(username);
+                bld.addAttribute(KerberosCmdConfiguration.SCRIPT_USER_NAME_ATTRIBUTE_NAME, username);
 
-            if (Name.NAME.equalsIgnoreCase(name) && StringUtil.isNotBlank(value)) {
-                bld.setName(value);
-            } else if (Uid.NAME.equals(name)) {
-                bld.setUid(value);
-            } else if (OperationalAttributes.ENABLE_NAME.equals(name)) {
-                bld.addAttribute(AttributeBuilder.buildEnabled(Boolean.parseBoolean(value)));
-            } else if (OperationalAttributes.PASSWORD_NAME.equals(name)) {
-                bld.addAttribute(AttributeBuilder.buildPassword(new GuardedString(value.toCharArray())));
-            } else {
-                bld.addAttribute(name, value);
+                if (StringUtil.isNotBlank(userdata)) {
+                    bld.addAttribute(KerberosCmdConfiguration.SCRIPT_USER_FLAGS_ATTRIBUTE_NAME, userdata);
+
+                    if (userdata.contains(KerberosCmdConfiguration.SCRIPT_LOCKED_KERBEROS_FLAG)) {
+                        isUserLocked = true;
+                    }
+                }
+
+                bld.addAttribute(KerberosCmdConfiguration.SCRIPT_USER_LOCKED_ATTRIBUTE_NAME, isUserLocked);
             }
         }
 
         bld.setObjectClass(oc);
 
-        resultsHandler.handle(bld.build());
+        return bld.build();
     }
 
-    private void readOutput(final Process proc) {
-        LOG.info("Read for script output ...");
-
+    private void readSearchOutput(final Process proc) {
+        LOG.info("Processing script output ...");
         final BufferedReader br = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         final StringBuilder buffer = new StringBuilder();
-
+        final List<ConnectorObject> results = new ArrayList<>();
         String line;
 
         try {
+            //TODO whitespace/string/newline formatting is built-in/assumed, if it differs code here
             while ((line = br.readLine()) != null) {
-                if (line.contains(ITEM_SEPARATOR)) {
-                    if (buffer.length() > 0) {
-                        LOG.ok("Handle result item {0}", buffer.toString());
-                        fillUserHandler(buffer.toString());
-                        buffer.delete(0, buffer.length());
-                    }
+                LOG.ok("Handle search result item {0}", line);
+                if (filter == null) {
+                    results.add(processSearchResult(line));
                 } else {
-                    buffer.append(line).append("\n");
+                    buffer.append(line + " ");
                 }
             }
 
-            if (buffer.length() > 0) {
-                LOG.ok("Handle result item {0}", buffer.toString());
-                fillUserHandler(buffer.toString());
+            if (filter != null) {
+                results.add(processSingleResult(buffer.toString().trim()));
             }
-
         } catch (IOException e) {
             LOG.error(e, "Error reading result items");
         }
@@ -174,5 +148,7 @@ public class KerberosCmdExecuteQuery extends KerberosCmdExec {
         } catch (IOException e) {
             LOG.ok(e, "Error closing reader");
         }
+
+        results.forEach(resultsHandler::handle);
     }
 }

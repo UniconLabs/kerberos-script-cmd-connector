@@ -149,6 +149,14 @@ public abstract class KerberosCmdExec {
         return null;
     }
 
+    protected String formatUsername(final String rawUsernameParam) {
+        if (kerberosCmdConfiguration.getDomainToRemoveFromSearchParam() != null) {
+            return rawUsernameParam.trim().replaceAll(kerberosCmdConfiguration.getDomainToRemoveFromSearchParam(), " ");
+        }
+
+        return rawUsernameParam.trim();
+    }
+
     private void setScriptType() {
         if (kerberosCmdConfiguration != null && StringUtil.isNotBlank(kerberosCmdConfiguration.getScriptCmdType())) {
             this.scriptType = kerberosCmdConfiguration.getScriptCmdType();

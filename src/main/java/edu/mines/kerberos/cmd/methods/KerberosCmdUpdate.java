@@ -69,16 +69,16 @@ public class KerberosCmdUpdate extends KerberosCmdExec {
         LOG.ok("ObjectClass: {0}", oc.getObjectClassValue());
         LOG.ok("User {0}: {1}", uid.getName(), uid.getUidValue());
 
-        final List<String> updatePasswordCommand = new ArrayList<>();
+        final List<String> updatePasswordParameters = new ArrayList<>();
         final GuardedString gpasswd = getPasswordFromAttributes(AttributeUtil.find(KerberosCmdConfiguration.SCRIPT_PASSWORD_ATTRIBUTE_NAME, attrs));
         if (gpasswd != null) {
-            updatePasswordCommand.add(KerberosCmdConfiguration.SCRIPT_CHANGE_PASSWORD_FLAG);
-            updatePasswordCommand.add(uid.getUidValue());
-            updatePasswordCommand.add(SecurityUtil.decrypt(gpasswd));
+            updatePasswordParameters.add(KerberosCmdConfiguration.SCRIPT_CHANGE_PASSWORD_FLAG);
+            updatePasswordParameters.add(formatUsername(uid.getUidValue()));
+            updatePasswordParameters.add(SecurityUtil.decrypt(gpasswd));
         }
 
-        if (!updatePasswordCommand.isEmpty()) {
-            return scriptExecuteSuccess((execScriptCmd(kerberosCmdConfiguration.getScriptCmdPath(), updatePasswordCommand, null)));
+        if (!updatePasswordParameters.isEmpty()) {
+            return scriptExecuteSuccess((execScriptCmd(kerberosCmdConfiguration.getScriptCmdPath(), updatePasswordParameters, null)));
         } else {
             return true;
         }
@@ -89,27 +89,27 @@ public class KerberosCmdUpdate extends KerberosCmdExec {
         LOG.ok("ObjectClass: {0}", oc.getObjectClassValue());
         LOG.ok("User {0}: {1}", uid.getName(), uid.getUidValue());
 
-        final List<String> updateThawFreezeCommand = new ArrayList<>();
+        final List<String> updateThawFreezeParameters = new ArrayList<>();
         final Attribute locked = AttributeUtil.find("user_locked", attrs);
 
         if (locked != null && !locked.getValue().isEmpty()) {
             final String lockValue = StringUtil.join(locked.getValue().toArray(), ',');
 
             if (lockValue.equalsIgnoreCase("locked")) {
-                updateThawFreezeCommand.add(KerberosCmdConfiguration.SCRIPT_LOCK_FLAG);
-                updateThawFreezeCommand.add(uid.getUidValue());
+                updateThawFreezeParameters.add(KerberosCmdConfiguration.SCRIPT_LOCK_FLAG);
+                updateThawFreezeParameters.add(uid.getUidValue());
             }
 
             if (lockValue.equalsIgnoreCase("unlocked")) {
-                updateThawFreezeCommand.add(KerberosCmdConfiguration.SCRIPT_UNLOCK_FLAG);
-                updateThawFreezeCommand.add(uid.getUidValue());
+                updateThawFreezeParameters.add(KerberosCmdConfiguration.SCRIPT_UNLOCK_FLAG);
+                updateThawFreezeParameters.add(uid.getUidValue());
             }
 
             //TODO confirm if unknown or not set do nothing for locked/thaw/freeze
         }
 
-        if (!updateThawFreezeCommand.isEmpty()) {
-            return scriptExecuteSuccess((execScriptCmd(kerberosCmdConfiguration.getScriptCmdPath(), updateThawFreezeCommand, null)));
+        if (!updateThawFreezeParameters.isEmpty()) {
+            return scriptExecuteSuccess((execScriptCmd(kerberosCmdConfiguration.getScriptCmdPath(), updateThawFreezeParameters, null)));
         } else {
             return true;
         }

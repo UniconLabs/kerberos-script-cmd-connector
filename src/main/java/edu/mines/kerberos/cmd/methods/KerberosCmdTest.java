@@ -15,6 +15,7 @@
  */
 package edu.mines.kerberos.cmd.methods;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import edu.mines.kerberos.cmd.KerberosCmdConfiguration;
@@ -33,9 +34,10 @@ public class KerberosCmdTest extends KerberosCmdExec {
 
     public final void test() {
         LOG.info("Executing test on {0}", kerberosCmdConfiguration.getTestCmdPath());
+        final List<String> testParameters = new ArrayList<>(); //TODO add any needed test parameters here
 
         boolean success = scriptExecuteSuccess(execScriptCmd(kerberosCmdConfiguration.getTestCmdPath(),
-                Collections.emptyList(),
+                testParameters,
                 createEnv(Collections.<Attribute>emptySet(), kerberosCmdConfiguration)));
 
         if (!success) {

@@ -46,24 +46,33 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
     public static final String SCRIPT_LIST_ALL_USERS_FLAG = "-l";
     public static final String SCRIPT_SHOW_DETAILS_FLAG = "-s";
 
-    public static final Map<Integer,String> SCRIPT_EXIT_ERROR_CODES = new HashMap<>();
     public static final String SCRIPT_PASSWORD_ATTRIBUTE_NAME = "user_password";
+    public static final String SCRIPT_USER_NAME_ATTRIBUTE_NAME = "user_name";
     public static final String SCRIPT_USER_LOCKED_ATTRIBUTE_NAME = "user_locked";
     public static final String SCRIPT_USER_FLAGS_ATTRIBUTE_NAME = "user_flags";
+
+    public static final String SCRIPT_LOCKED_KERBEROS_FLAG = "KRB5_KDB_DISALLOW_ALL_TIX";
+    public static final String SCRIPT_SINGLE_RESULT_HEADER = "Attributes for ";
+
+    public static final Map<Integer,String> SCRIPT_EXIT_ERROR_CODES = new HashMap<>();
     //End specific items for script
 
     //Configuration options
+    protected static boolean shouldRedirectErrorOutput = false;
+
     private final ObjectClass objectClass;
 
     private String adminPrincipal;
 
     private String keytabPath;
 
-    private String scriptCmdPath = "";
+    private String scriptCmdPath;
 
-    private String scriptCmdType = "";
+    private String scriptCmdType;
 
-    private String testCmdPath = "";
+    private String testCmdPath ;
+
+    private String domainToRemoveFromSearchParam;
 
 
     public KerberosCmdConfiguration() {
@@ -97,6 +106,8 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
             setScriptCmdPath(getSafeValue(values, "scriptCmdPath", null));
             setScriptCmdType(getSafeValue(values, "scriptCmdType", null));
             setTestCmdPath(getSafeValue(values, "testCmdPath", null));
+            setRedirectErrorOutput(getSafeValue(values, "redirectErrorOutput", null));
+            setDomainToRemoveFromSearchParam(getSafeValue(values, "domainToRemoveFromSearchParam", null));
 
         } catch (Exception e) {
             LOG.ok("Error setting configuration values! " + e.getMessage());
@@ -125,7 +136,7 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
     }
 
     @ConfigurationProperty(displayMessageKey = "kerberosCmd.scriptCmdPath.display",
-            helpMessageKey = "kerberosCmd.scriptCmdPath.help", order = 5)
+            helpMessageKey = "kerberosCmd.scriptCmdPath.help", order = 2)
     public String getScriptCmdPath() {
         return scriptCmdPath;
     }
@@ -135,7 +146,7 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
     }
 
     @ConfigurationProperty(displayMessageKey = "kerberosCmd.scriptCmdType.display",
-            helpMessageKey = "kerberosCmd.scriptCmdType.help", order = 5)
+            helpMessageKey = "kerberosCmd.scriptCmdType.help", order = 1)
     public String getScriptCmdType() {
         return scriptCmdType;
     }
@@ -145,13 +156,33 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
     }
 
     @ConfigurationProperty(displayMessageKey = "kerberosCmd.testCmdPath.display",
-            helpMessageKey = "kerberosCmd.testCmdPath.help", order = 9)
+            helpMessageKey = "kerberosCmd.testCmdPath.help", order = 7)
     public String getTestCmdPath() {
         return testCmdPath;
     }
 
-    public void setTestCmdPath(String testCmdPath) {
+    public void setTestCmdPath(final String testCmdPath) {
         this.testCmdPath = testCmdPath;
+    }
+
+    @ConfigurationProperty(displayMessageKey = "kerberosCmd.redirectErrorOutput.display",
+            helpMessageKey = "kerberosCmd.redirectErrorOutput.help", order = 5)
+    public String getRedirectErrorOutput() {
+        return String.valueOf(shouldRedirectErrorOutput);
+    }
+
+    public void setRedirectErrorOutput(final String redirectErrorOutput) {
+        shouldRedirectErrorOutput = Boolean.parseBoolean(redirectErrorOutput);
+    }
+
+    @ConfigurationProperty(displayMessageKey = "kerberosCmd.domainToRemoveFromSearchParam.display",
+            helpMessageKey = "kerberosCmd.domainToRemoveFromSearchParam.help", order = 6)
+    public String getDomainToRemoveFromSearchParam() {
+        return domainToRemoveFromSearchParam;
+    }
+
+    public void setDomainToRemoveFromSearchParam(final String domainToRemoveFromSearchParam) {
+        this.domainToRemoveFromSearchParam = domainToRemoveFromSearchParam;
     }
 
     public ObjectClass getObjectClass() {
