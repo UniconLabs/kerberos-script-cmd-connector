@@ -18,11 +18,18 @@
 Kerberos Command Connector
 ==============
 
+For: Colorado School of Mines
+Developed by: Unicon Inc. using existing TIRASA CMD Connector
+
+
 This connector interfaces with Kerberos via an external script. Under the hood it uses and extends 
  the ConnId CMD connector (Tirasa ConnIdCMDBundle) and extends it in order to invoke a script for Kerberos commands and functions.
 
-WIP
+Currently, this connector is moderately coupled to the Colorado School of Mines Kerberos Perl script, but could be modified to be more
+ customizable as desired. See the sample resource in the samples folder for and idea of configuration. 
 
+
+You'll want to add this to the resource object in midPoint. Note you can tweak the timings to something that makes sense based on actual execution time of the script.
 ```xml
         <icfc:resultsHandlerConfiguration>
             <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
@@ -45,3 +52,9 @@ WIP
         </icfc:timeouts>
 ```
 
+If you want midPoint to delete/remove from the resource you may need to add, although for this connector it seems to work without (since there is no disable functionality):
+```xml
+<projection>
+    <assignmentPolicyEnforcement>full</assignmentPolicyEnforcement>
+</projection>
+```
