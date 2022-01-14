@@ -53,12 +53,12 @@ public class KerberosCmdUpdate extends KerberosCmdExec {
 
         status = updateUserPassword();
         if (!status) {
-            LOG.error("Kerberos update password didn't return success for [{0}]!", uid.getUidValue());
+            LOG.error("Kerberos update password didn't return success for [{0}]!", formatUsername(uid.getUidValue()));
         }
 
         status = updateUserLockStatus();
         if (!status) {
-            LOG.error("Kerberos update thaw or freeze didn't return success for [{0}]!", uid.getUidValue());
+            LOG.error("Kerberos update thaw or freeze didn't return success for [{0}]!", formatUsername(uid.getUidValue()));
         }
 
         return uid;
@@ -67,7 +67,7 @@ public class KerberosCmdUpdate extends KerberosCmdExec {
     private boolean updateUserPassword() {
         LOG.ok("Creating parameters for password update with: ");
         LOG.ok("ObjectClass: {0}", oc.getObjectClassValue());
-        LOG.ok("User {0}: {1}", uid.getName(), uid.getUidValue());
+        LOG.ok("User {0}: {1}", uid.getName(), formatUsername(uid.getUidValue()));
 
         final List<String> updatePasswordParameters = new ArrayList<>();
         final GuardedString gpasswd = getPasswordFromAttributes(AttributeUtil.find(KerberosCmdConfiguration.SCRIPT_PASSWORD_ATTRIBUTE_NAME, attrs));
@@ -87,7 +87,7 @@ public class KerberosCmdUpdate extends KerberosCmdExec {
     private boolean updateUserLockStatus() {
         LOG.ok("Creating parameters for freeze/thaw update with: ");
         LOG.ok("ObjectClass: {0}", oc.getObjectClassValue());
-        LOG.ok("User {0}: {1}", uid.getName(), uid.getUidValue());
+        LOG.ok("User {0}: {1}", uid.getName(), formatUsername(uid.getUidValue()));
 
         final List<String> updateThawFreezeParameters = new ArrayList<>();
         final Attribute locked = AttributeUtil.find("user_locked", attrs);
@@ -95,17 +95,17 @@ public class KerberosCmdUpdate extends KerberosCmdExec {
         if (locked != null && !locked.getValue().isEmpty()) {
             final String lockValue = StringUtil.join(locked.getValue().toArray(), ',');
 
-            if (lockValue.equalsIgnoreCase("locked")) {
+            if (lockValue.equalsIgnoreCase(kerberosCmdConfiguration.getUserLockedAttributeValue())) {
                 updateThawFreezeParameters.add(KerberosCmdConfiguration.SCRIPT_LOCK_FLAG);
-                updateThawFreezeParameters.add(uid.getUidValue());
-            }
+                updateThawFreezeParameters.add(formatUsername(uid.getUidValue()));
 
-            if (lockValue.equalsIgnoreCase("unlocked")) {
+            } else if (lockValue.equalsIgnoreCase(kerberosCmdConfiguration.getUserUnlockedAttributeValue())) {
                 updateThawFreezeParameters.add(KerberosCmdConfiguration.SCRIPT_UNLOCK_FLAG);
-                updateThawFreezeParameters.add(uid.getUidValue());
-            }
+                updateThawFreezeParameters.add(formatUsername(uid.getUidValue()));
 
-            //TODO confirm if unknown or not set do nothing for locked/thaw/freeze
+            } else {
+                //TODO confirm if unknown or not set do nothing for locked/thaw/freeze
+            }
         }
 
         if (!updateThawFreezeParameters.isEmpty()) {

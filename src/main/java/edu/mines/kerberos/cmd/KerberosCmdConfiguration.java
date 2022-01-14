@@ -74,6 +74,10 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
 
     private String domainToRemoveFromSearchParam;
 
+    private String userLockedAttributeValue;
+
+    private String userUnlockedAttributeValue;
+
 
     public KerberosCmdConfiguration() {
         this(ObjectClass.ACCOUNT, null);
@@ -108,6 +112,8 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
             setTestCmdPath(getSafeValue(values, "testCmdPath", null));
             setRedirectErrorOutput(getSafeValue(values, "redirectErrorOutput", null));
             setDomainToRemoveFromSearchParam(getSafeValue(values, "domainToRemoveFromSearchParam", null));
+            setUserLockedAttributeValue(getSafeValue(values, "userLockedAttributeValue", null));
+            setUserUnlockedAttributeValue(getSafeValue(values, "userUnlockedAttributeValue", null));
 
         } catch (Exception e) {
             LOG.ok("Error setting configuration values! " + e.getMessage());
@@ -183,6 +189,26 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
 
     public void setDomainToRemoveFromSearchParam(final String domainToRemoveFromSearchParam) {
         this.domainToRemoveFromSearchParam = domainToRemoveFromSearchParam;
+    }
+
+    @ConfigurationProperty(displayMessageKey = "kerberosCmd.userLockedAttributeValue.display",
+            helpMessageKey = "kerberosCmd.userLockedAttributeValue.help", order = 6)
+    public String getUserLockedAttributeValue() {
+        return userLockedAttributeValue;
+    }
+
+    public void setUserLockedAttributeValue(final String userLockedAttributeValue) {
+        this.userLockedAttributeValue = userLockedAttributeValue;
+    }
+
+    @ConfigurationProperty(displayMessageKey = "kerberosCmd.userUnlockedAttributeValue.display",
+            helpMessageKey = "kerberosCmd.userUnlockedAttributeValue.help", order = 6)
+    public String getUserUnlockedAttributeValue() {
+        return userUnlockedAttributeValue;
+    }
+
+    public void setUserUnlockedAttributeValue(final String userUnlockedAttributeValue) {
+        this.userUnlockedAttributeValue = userUnlockedAttributeValue;
     }
 
     public ObjectClass getObjectClass() {

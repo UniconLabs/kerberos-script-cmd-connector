@@ -48,7 +48,7 @@ public class KerberosCmdDelete extends KerberosCmdExec {
     private List<String> createDeleteUserParameters() {
         LOG.ok("Creating parameters for deletion with: ");
         LOG.ok("ObjectClass: {0}", oc.getObjectClassValue());
-        LOG.ok("User {0}: {1}", uid.getName(), uid.getUidValue());
+        LOG.ok("User {0}: {1}", uid.getName(), formatUsername(uid.getUidValue()));
 
         final List<String> deleteUserParams = new ArrayList<>();
         deleteUserParams.add(KerberosCmdConfiguration.SCRIPT_DELETE_FLAG);

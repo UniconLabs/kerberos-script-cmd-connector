@@ -117,8 +117,8 @@ public abstract class KerberosCmdExec {
         }
         
         if (uid != null && AttributeUtil.find(Uid.NAME, attrs) == null) {
-            LOG.ok("Environment variable {0}: {1}", Uid.NAME, uid.getUidValue());
-            env.add(new Pair<>(Uid.NAME, uid.getUidValue()));
+            LOG.ok("Environment variable {0}: {1}", Uid.NAME, formatUsername(uid.getUidValue()));
+            env.add(new Pair<>(Uid.NAME, formatUsername(uid.getUidValue())));
         }
 
         return env;
