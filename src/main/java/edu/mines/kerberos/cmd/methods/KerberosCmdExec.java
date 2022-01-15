@@ -63,12 +63,13 @@ public abstract class KerberosCmdExec {
         LOG.ok("Paramaters and arguments passed: " + paramsAndArgs.toString());
         if (scriptType != null) {
             command.add(scriptType);
-            command.add(scriptToExecute);
-            command.add(KerberosCmdConfiguration.SCRIPT_PRINCIPAL_FLAG);
-            command.add(kerberosCmdConfiguration.getAdminPrincipal());
-            command.add(KerberosCmdConfiguration.SCRIPT_KEYTAB_FLAG);
-            command.add(kerberosCmdConfiguration.getKeytabPath());
         }
+        command.add(scriptToExecute);
+        command.add(KerberosCmdConfiguration.SCRIPT_PRINCIPAL_FLAG);
+        command.add(kerberosCmdConfiguration.getAdminPrincipal());
+        command.add(KerberosCmdConfiguration.SCRIPT_KEYTAB_FLAG);
+        command.add(kerberosCmdConfiguration.getKeytabPath());
+
         command.addAll(paramsAndArgs);
         LOG.ok("Script Command: " + command);
 

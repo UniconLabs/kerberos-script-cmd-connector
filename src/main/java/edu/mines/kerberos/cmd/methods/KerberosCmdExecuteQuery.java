@@ -149,6 +149,7 @@ public class KerberosCmdExecuteQuery extends KerberosCmdExec {
             LOG.ok(e, "Error closing reader");
         }
 
+        LOG.ok("Found " + results.size() + " search results!");
         results.forEach(resultsHandler::handle);
     }
 }
