@@ -78,6 +78,8 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
 
     private String userUnlockedAttributeValue;
 
+    private String scriptErrorResponse;
+
 
     public KerberosCmdConfiguration() {
         this(ObjectClass.ACCOUNT, null);
@@ -114,6 +116,7 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
             setDomainToRemoveFromSearchParam(getSafeValue(values, "domainToRemoveFromSearchParam", null));
             setUserLockedAttributeValue(getSafeValue(values, "userLockedAttributeValue", null));
             setUserUnlockedAttributeValue(getSafeValue(values, "userUnlockedAttributeValue", null));
+            setScriptErrorResponse(getSafeValue(values, "scriptErrorResponse", null));
 
         } catch (Exception e) {
             LOG.ok("Error setting configuration values! " + e.getMessage());
@@ -124,7 +127,7 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
     @ConfigurationProperty(displayMessageKey = "kerberosCmd.adminPrincipal.display",
             helpMessageKey = "kerberosCmd.adminPrincipal.help", order = 3)
     public String getAdminPrincipal() {
-        return adminPrincipal;
+        return trimValue(adminPrincipal);
     }
 
     public void setAdminPrincipal(final String adminPrincipal) {
@@ -134,7 +137,7 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
     @ConfigurationProperty(displayMessageKey = "kerberosCmd.keytabPath.display",
             helpMessageKey = "kerberosCmd.keytabPath.help", order = 4)
     public String getKeytabPath() {
-        return keytabPath;
+        return trimValue(keytabPath);
     }
 
     public void setKeytabPath(final String keytabPath) {
@@ -144,7 +147,7 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
     @ConfigurationProperty(displayMessageKey = "kerberosCmd.scriptCmdPath.display",
             helpMessageKey = "kerberosCmd.scriptCmdPath.help", order = 2)
     public String getScriptCmdPath() {
-        return scriptCmdPath;
+        return trimValue(scriptCmdPath);
     }
 
     public void setScriptCmdPath(final String scriptCmdPath) {
@@ -154,7 +157,7 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
     @ConfigurationProperty(displayMessageKey = "kerberosCmd.scriptCmdType.display",
             helpMessageKey = "kerberosCmd.scriptCmdType.help", order = 1)
     public String getScriptCmdType() {
-        return scriptCmdType;
+        return trimValue(scriptCmdType);
     }
 
     public void setScriptCmdType(final String scriptCmdType) {
@@ -164,7 +167,7 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
     @ConfigurationProperty(displayMessageKey = "kerberosCmd.testCmdPath.display",
             helpMessageKey = "kerberosCmd.testCmdPath.help", order = 7)
     public String getTestCmdPath() {
-        return testCmdPath;
+        return trimValue(testCmdPath);
     }
 
     public void setTestCmdPath(final String testCmdPath) {
@@ -184,7 +187,7 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
     @ConfigurationProperty(displayMessageKey = "kerberosCmd.domainToRemoveFromSearchParam.display",
             helpMessageKey = "kerberosCmd.domainToRemoveFromSearchParam.help", order = 6)
     public String getDomainToRemoveFromSearchParam() {
-        return domainToRemoveFromSearchParam;
+        return trimValue(domainToRemoveFromSearchParam);
     }
 
     public void setDomainToRemoveFromSearchParam(final String domainToRemoveFromSearchParam) {
@@ -194,7 +197,7 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
     @ConfigurationProperty(displayMessageKey = "kerberosCmd.userLockedAttributeValue.display",
             helpMessageKey = "kerberosCmd.userLockedAttributeValue.help", order = 6)
     public String getUserLockedAttributeValue() {
-        return userLockedAttributeValue;
+        return trimValue(userLockedAttributeValue);
     }
 
     public void setUserLockedAttributeValue(final String userLockedAttributeValue) {
@@ -204,11 +207,21 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
     @ConfigurationProperty(displayMessageKey = "kerberosCmd.userUnlockedAttributeValue.display",
             helpMessageKey = "kerberosCmd.userUnlockedAttributeValue.help", order = 6)
     public String getUserUnlockedAttributeValue() {
-        return userUnlockedAttributeValue;
+        return trimValue(userUnlockedAttributeValue);
     }
 
     public void setUserUnlockedAttributeValue(final String userUnlockedAttributeValue) {
         this.userUnlockedAttributeValue = userUnlockedAttributeValue;
+    }
+
+    @ConfigurationProperty(displayMessageKey = "kerberosCmd.scriptErrorValue.display",
+            helpMessageKey = "kerberosCmd.scriptErrorValue.help", order = 7)
+    public String getScriptErrorResponse() {
+        return trimValue(scriptErrorResponse);
+    }
+
+    public void setScriptErrorResponse(final String scriptErrorResponse) {
+        this.scriptErrorResponse = scriptErrorResponse;
     }
 
     public ObjectClass getObjectClass() {
@@ -255,5 +268,13 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
         }
 
         return defValue;
+    }
+
+    private String trimValue(final String stringToTrim) {
+        if (stringToTrim != null) {
+            return stringToTrim.trim();
+        }
+
+        return null;
     }
 }

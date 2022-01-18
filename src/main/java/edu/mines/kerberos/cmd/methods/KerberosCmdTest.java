@@ -32,7 +32,7 @@ public class KerberosCmdTest extends KerberosCmdExec {
         super(null, kerberosCmdConfiguration);
     }
 
-    public final void test() {
+    public final void test() throws ConfigurationException  {
         LOG.info("Executing test on {0}", kerberosCmdConfiguration.getTestCmdPath());
         final List<String> testParameters = new ArrayList<>(); //TODO add any needed test parameters here
 

@@ -18,12 +18,13 @@ package edu.mines.kerberos.cmd.methods;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.ConnectException;
 import java.util.*;
 import edu.mines.kerberos.cmd.KerberosCmdConfiguration;
 import edu.mines.kerberos.cmd.search.Operand;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
+import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.objects.*;
 
 
@@ -47,7 +48,7 @@ public class KerberosCmdExecuteQuery extends KerberosCmdExec {
         this.resultsHandler = rh;
     }
 
-    public void execQuery() throws ConnectException {
+    public void execQuery() throws ConnectorIOException {
         final Process proc;
 
         proc = execScriptCmd(kerberosCmdConfiguration.getScriptCmdPath(), createSearchParameters(), null);
@@ -74,18 +75,34 @@ public class KerberosCmdExecuteQuery extends KerberosCmdExec {
         return createSearchParams;
     }
 
-    //TODO This is hard-coded to the Kerberos perl script to ignore words in front of single result as well flags on newlines
-    private ConnectorObject processSingleResult(final String searchScriptOutput) throws ConnectException {
-        if (StringUtil.isNotBlank(searchScriptOutput)) {
-            return processSearchResult(searchScriptOutput.split(KerberosCmdConfiguration.SCRIPT_SINGLE_RESULT_HEADER)[1].replace(System.lineSeparator(), ""));
-        } else {
-            return processSearchResult(searchScriptOutput);
+    //TODO This is hard-coded to the Kerberos perl script to ignore words in front of single result as well add domain to username as well as ignore non-used values
+    private ConnectorObject processSingleResult(final String searchScriptOutput) throws ConnectorException {
+
+        if (StringUtil.isNotBlank(searchScriptOutput) &&
+                searchScriptOutput.contains(KerberosCmdConfiguration.SCRIPT_SINGLE_RESULT_HEADER)) {
+
+            final List<String> singleSearchRawResult =
+                    new ArrayList<>(List.of(searchScriptOutput.replace(KerberosCmdConfiguration.SCRIPT_SINGLE_RESULT_HEADER, "")
+                            .replace(System.lineSeparator(), "").trim().split("\\s+")));
+
+                final StringBuilder singleSearchCompiledResult = new StringBuilder(singleSearchRawResult.get(0) +
+                        kerberosCmdConfiguration.getDomainToRemoveFromSearchParam()); //For consistency adds back domain to search result username
+            singleSearchRawResult.remove(0); //removes username grabbed above
+            singleSearchRawResult.remove(0); //removes the hex value (value right after username)
+
+                singleSearchRawResult.forEach(it -> {
+                    singleSearchCompiledResult.append(" ").append(it); //adds flags
+                });
+
+                return processSearchResult(singleSearchCompiledResult.toString().trim());
         }
+
+        return processSearchResult(searchScriptOutput);
     }
 
-    private ConnectorObject processSearchResult(final String searchScriptOutput) throws ConnectException {
+    private ConnectorObject processSearchResult(final String searchScriptOutput) throws ConnectorException, IllegalStateException {
         if (searchScriptOutput == null || searchScriptOutput.isEmpty()) {
-            throw new ConnectException("No results found");
+            throw new ConnectorException("No search results found!");
         }
 
         final Properties attrs = StringUtil.toProperties(searchScriptOutput);
@@ -118,7 +135,7 @@ public class KerberosCmdExecuteQuery extends KerberosCmdExec {
         return bld.build();
     }
 
-    private void readSearchOutput(final Process proc) {
+    private void readSearchOutput(final Process proc) throws ConnectorIOException {
         LOG.info("Processing script output ...");
         final BufferedReader br = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         final StringBuilder buffer = new StringBuilder();
@@ -129,10 +146,14 @@ public class KerberosCmdExecuteQuery extends KerberosCmdExec {
             //TODO whitespace/string/newline formatting is built-in/assumed, if it differs code here
             while ((line = br.readLine()) != null) {
                 LOG.ok("Handle search result item {0}", line);
-                if (filter == null) {
-                    results.add(processSearchResult(line));
+                if (StringUtil.isNotBlank(kerberosCmdConfiguration.getScriptErrorResponse()) && line.contains(kerberosCmdConfiguration.getScriptErrorResponse())) {
+                    throw new ConnectorIOException("Script failed with error response: " + line.toString());
                 } else {
-                    buffer.append(line + " ");
+                    if (filter != null) {
+                        buffer.append(line + " "); //this assumes script single result search has each flag on a newline
+                    } else {
+                        results.add(processSearchResult(line)); //this assumes script list all has each single result per line
+                    }
                 }
             }
 
@@ -141,12 +162,13 @@ public class KerberosCmdExecuteQuery extends KerberosCmdExec {
             }
         } catch (IOException e) {
             LOG.error(e, "Error reading result items");
+            throw new ConnectorIOException(e);
         }
 
         try {
             br.close();
         } catch (IOException e) {
-            LOG.ok(e, "Error closing reader");
+            LOG.ok(e, "Error closing reader"); //swallow since process will be closed
         }
 
         LOG.ok("Found " + results.size() + " search results!");

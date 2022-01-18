@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.List;
 import org.identityconnectors.common.Pair;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 
 /**
  * KerberosCmdConnection
@@ -40,7 +41,7 @@ public class KerberosCmdConnection {
     private KerberosCmdConnection() {
     }
 
-    public Process executeScriptCmd(final List<String> command, final List<Pair<String, String>> env) throws IOException {
+    public Process executeScriptCmd(final List<String> command, final List<Pair<String, String>> env) throws ConnectorIOException {
         LOG.info("KerberosScript executing script {0} {1}", command, env);
 
         final ProcessBuilder builder = new ProcessBuilder(command); //script path and arguments are in the command
@@ -52,9 +53,14 @@ public class KerberosCmdConnection {
             }
         }
 
-        final Process proc = builder.start(); //executes the process
-        proc.getOutputStream().close();
-        LOG.ok("KerberosScript script execution complete!");
-        return proc;
+        try {
+            final Process proc = builder.start(); //executes the process
+            proc.getOutputStream().close();
+            LOG.ok("KerberosScript script execution complete!");
+            return proc;
+
+        } catch (IOException io) {
+            throw new ConnectorIOException(io);
+        }
     }
 }

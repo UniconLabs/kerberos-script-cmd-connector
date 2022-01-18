@@ -28,6 +28,8 @@ import edu.mines.kerberos.cmd.methods.KerberosCmdTest;
 import edu.mines.kerberos.cmd.methods.KerberosCmdUpdate;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
+import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.objects.*;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 import org.identityconnectors.framework.spi.Configuration;
@@ -144,8 +146,10 @@ public class KerberosCmdConnector implements Connector, SchemaOp, CreateOp, Upda
 
         try {
             new KerberosCmdExecuteQuery(oc, kerberosCmdConfiguration, operand, rh).execQuery();
-        } catch (ConnectException ex) {
-            LOG.error("KerberosScript Error in connection process", ex);
+
+        } catch (ConnectorIOException ex) {
+            LOG.error(ex, "KerberosScript Error! ", ex.getMessage());
+            throw new ConnectorException(ex);
         }
     }
 
@@ -197,6 +201,7 @@ public class KerberosCmdConnector implements Connector, SchemaOp, CreateOp, Upda
 
         } catch (Exception ex) {
             LOG.error(ex, "Couldn't create schema for Kerberos CMD connector");
+            throw new ConnectorException(ex);
         }
 
         final Schema schema = schemaBuilder.build();

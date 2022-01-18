@@ -56,7 +56,7 @@ public abstract class KerberosCmdExec {
     }
 
     protected Process execScriptCmd(final String scriptToExecute, final List<String> paramsAndArgs,
-                                    final List<Pair<String, String>> env) {
+                                    final List<Pair<String, String>> env) throws ConnectorException {
 
         final List<String> command = new ArrayList<>();
 
@@ -151,8 +151,8 @@ public abstract class KerberosCmdExec {
     }
 
     protected String formatUsername(final String rawUsernameParam) {
-        if (kerberosCmdConfiguration.getDomainToRemoveFromSearchParam() != null) {
-            return rawUsernameParam.trim().replaceAll(kerberosCmdConfiguration.getDomainToRemoveFromSearchParam(), " ");
+        if (StringUtil.isNotBlank(kerberosCmdConfiguration.getDomainToRemoveFromSearchParam())) {
+            return rawUsernameParam.replaceAll(kerberosCmdConfiguration.getDomainToRemoveFromSearchParam(), "").trim();
         }
 
         return rawUsernameParam.trim();

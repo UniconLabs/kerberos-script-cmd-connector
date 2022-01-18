@@ -9,6 +9,15 @@
         <iterationToken/>
         <connectorRef oid="4a1ce133-85e4-40b5-99f3-1bc933d96968" relation="org:default" type="c:ConnectorType">
             <!-- ConnId edu.mines.kerberos.cmd.KerberosCmdConnector v1.0 -->
+            <description>
+                ConnId edu.mines.kerberos.cmd.KerberosCmdConnector v1.0
+            </description>
+            <filter>
+                <q:equal>
+                    <q:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">c:connectorType</q:path>
+                    <q:value>edu.mines.kerberos.cmd.KerberosCmdConnector</q:value>
+                </q:equal>
+            </filter>
         </connectorRef>
         <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ConnectorConfigurationType">
             <icfc:configurationProperties xmlns:gen502="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/edu.mines.kerberos.connector-kerberos-script/edu.mines.kerberos.cmd.KerberosCmdConnector">
@@ -21,6 +30,7 @@
                 <gen502:domainToRemoveFromSearchParam>@DEV.MINES.EDU</gen502:domainToRemoveFromSearchParam>
                 <gen502:userUnlockedAttributeValue>false</gen502:userUnlockedAttributeValue>
                 <gen502:userLockedAttributeValue>true</gen502:userLockedAttributeValue>
+                <gen502:scriptErrorResponse>:error</gen502:scriptErrorResponse>
             </icfc:configurationProperties>
             <icfc:timeouts>
                 <icfc:create>180000</icfc:create>
