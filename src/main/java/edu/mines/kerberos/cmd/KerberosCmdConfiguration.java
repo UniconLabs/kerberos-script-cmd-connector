@@ -181,7 +181,7 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
     }
 
     public void setRedirectErrorOutput(final String redirectErrorOutput) {
-        shouldRedirectErrorOutput = Boolean.parseBoolean(redirectErrorOutput);
+        shouldRedirectErrorOutput = Boolean.parseBoolean(trimValue(redirectErrorOutput));
     }
 
     @ConfigurationProperty(displayMessageKey = "kerberosCmd.domainToRemoveFromSearchParam.display",

@@ -15,8 +15,12 @@
  */
 package edu.mines.kerberos.cmd.methods;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.*;
-
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
 import edu.mines.kerberos.cmd.KerberosCmdConnection;
 import edu.mines.kerberos.cmd.KerberosCmdConfiguration;
 import edu.mines.kerberos.cmd.KerberosCmdConnector;
@@ -126,28 +130,96 @@ public abstract class KerberosCmdExec {
 
     }
 
-    protected boolean scriptExecuteSuccess(final Process proc) {
+    protected Pair<Boolean,String> scriptExecuteSuccess(final Process proc) {
         int statusCode = 1;
+        final StringBuilder statusMessage = new StringBuilder();
+        final ExecutorService threadPool = Executors.newSingleThreadExecutor();
 
         try {
+            final ReadProcessOutput stdOutputStreamReader = new ReadProcessOutput(proc.getInputStream());
+            final Future<List<String>> procStdOutput = threadPool.submit(stdOutputStreamReader);
+            final ReadProcessOutput errorOutputStreamReader = new ReadProcessOutput(proc.getErrorStream());
+            final Future<List<String>> procErrorOutput = threadPool.submit(errorOutputStreamReader);
+
             proc.waitFor();
+
+            try {
+                final List<String> errorOutput = procErrorOutput.get(5, TimeUnit.SECONDS);
+                if (!errorOutput.isEmpty()) {
+                    LOG.error("Found error in script: " + errorOutput);
+                    statusMessage.append(errorOutput).append(" ");
+                }
+            } catch (Exception ioe) {
+                //swallow
+            }
+
+            try {
+                final List<String> stdOutput = procStdOutput.get(5, TimeUnit.SECONDS);
+
+                if (Boolean.parseBoolean(kerberosCmdConfiguration.getRedirectErrorOutput())) {
+                    for (final String it : stdOutput) {
+                        if (it.contains(kerberosCmdConfiguration.getScriptErrorResponse())) {
+                            LOG.error("Found error in script: " + it);
+                            statusMessage.append(it).append(" ");
+                        }
+                    }
+                }
+            } catch (Exception ioe2) {
+                //swallow
+            }
 
             statusCode = proc.exitValue();
             KerberosCmdConnector.logScriptStatus(statusCode);
 
-        } catch (InterruptedException e) {
-            LOG.error(e, "Error waiting for termination");
+        } catch (Exception e) {
+            LOG.error(e, "Error waiting for process termination or reading output!");
+            statusMessage.append(e.getMessage()).append(" ");
+            statusCode = 1;
+        } finally {
+            threadPool.shutdown();
         }
 
-        return statusCode == 0;
+        if (statusCode == 0 && statusMessage.length() > 0) {
+            statusCode = 1; //let's force the error code since perhaps the script isn't reporting exit status
+        }
+
+        return new Pair(statusCode == 0, statusMessage.toString());
     }
 
-    protected GuardedString getPasswordFromAttributes(final Attribute passwordAttribute) {
-        if (passwordAttribute != null) {
-            return AttributeUtil.getGuardedStringValue(passwordAttribute);
+    protected GuardedString getPasswordFromAttributes(final Set<Attribute> attributes) {
+        if (!attributes.isEmpty()) {
+            Attribute passwd = AttributeUtil.find(KerberosCmdConfiguration.SCRIPT_PASSWORD_ATTRIBUTE_NAME, attributes); //try configured password value
+
+            if (passwd == null) {
+                passwd = AttributeUtil.find(OperationalAttributes.PASSWORD_NAME, attributes); //try standard password attribute
+            }
+
+            if (passwd == null) {
+                throw new IllegalArgumentException("No Password provided in the attributes");
+            } else {
+                return AttributeUtil.getGuardedStringValue(passwd);
+            }
         }
 
         return null;
+    }
+
+    protected int isUserLocked(final Set<Attribute> attributes) {
+        Attribute lockedRawAttr = AttributeUtil.find(KerberosCmdConfiguration.SCRIPT_USER_LOCKED_ATTRIBUTE_NAME, attributes); //try configured value
+        if (lockedRawAttr == null) {
+            lockedRawAttr = AttributeUtil.find(OperationalAttributes.LOCK_OUT_NAME, attributes); //try standard lock out value
+        }
+
+        if (lockedRawAttr != null && !lockedRawAttr.getValue().isEmpty()) {
+            final String lockedValue = StringUtil.join(lockedRawAttr.getValue().toArray(), ',');
+            if (lockedValue.equalsIgnoreCase(kerberosCmdConfiguration.getUserLockedAttributeValue())) {
+                return 1;
+            } else if (lockedValue.equalsIgnoreCase(kerberosCmdConfiguration.getUserUnlockedAttributeValue())) {
+                return 0;
+            }
+        }
+
+        return -1;
     }
 
     protected String formatUsername(final String rawUsernameParam) {
@@ -161,6 +233,20 @@ public abstract class KerberosCmdExec {
     private void setScriptType() {
         if (kerberosCmdConfiguration != null && StringUtil.isNotBlank(kerberosCmdConfiguration.getScriptCmdType())) {
             this.scriptType = kerberosCmdConfiguration.getScriptCmdType();
+        }
+    }
+
+    private static class ReadProcessOutput implements Callable<List<String>> {
+
+        private final InputStream input;
+
+        public ReadProcessOutput(final InputStream processInputStream) {
+            this.input = processInputStream;
+        }
+
+        @Override
+        public final List<String> call() {
+            return new BufferedReader(new InputStreamReader(input)).lines().collect(Collectors.toList());
         }
     }
 }

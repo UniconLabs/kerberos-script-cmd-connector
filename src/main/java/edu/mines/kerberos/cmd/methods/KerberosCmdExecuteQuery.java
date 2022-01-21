@@ -21,6 +21,7 @@ import java.io.InputStreamReader;
 import java.util.*;
 import edu.mines.kerberos.cmd.KerberosCmdConfiguration;
 import edu.mines.kerberos.cmd.search.Operand;
+import org.identityconnectors.common.Pair;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
@@ -48,11 +49,20 @@ public class KerberosCmdExecuteQuery extends KerberosCmdExec {
         this.resultsHandler = rh;
     }
 
-    public void execQuery() throws ConnectorIOException {
+    public void execQuery() throws ConnectorException, ConnectorIOException {
         final Process proc;
+        proc = execScriptCmd(kerberosCmdConfiguration.getScriptCmdPath(), createSearchParameters(), null); //execute search
 
-        proc = execScriptCmd(kerberosCmdConfiguration.getScriptCmdPath(), createSearchParameters(), null);
-        readSearchOutput(proc);
+        if (proc.isAlive()) {
+            final List<ConnectorObject> results = readSearchOutput(proc); //process results
+
+            final Pair<Boolean,String> status = scriptExecuteSuccess(proc);
+            if (status.getKey()) { //check exit code
+                results.stream().filter(Objects::nonNull).forEach(resultsHandler::handle); //publish results and exit
+            } else {
+                throw new ConnectorException("Error in search: " + status.getValue());
+            }
+        }
     }
 
     private List<String> createSearchParameters() {
@@ -76,7 +86,7 @@ public class KerberosCmdExecuteQuery extends KerberosCmdExec {
     }
 
     //TODO This is hard-coded to the Kerberos perl script to ignore words in front of single result as well add domain to username as well as ignore non-used values
-    private ConnectorObject processSingleResult(final String searchScriptOutput) throws ConnectorException {
+    private ConnectorObject processSingleResult(final String searchScriptOutput) throws ConnectorIOException {
 
         if (StringUtil.isNotBlank(searchScriptOutput) &&
                 searchScriptOutput.contains(KerberosCmdConfiguration.SCRIPT_SINGLE_RESULT_HEADER)) {
@@ -100,9 +110,9 @@ public class KerberosCmdExecuteQuery extends KerberosCmdExec {
         return processSearchResult(searchScriptOutput);
     }
 
-    private ConnectorObject processSearchResult(final String searchScriptOutput) throws ConnectorException, IllegalStateException {
+    private ConnectorObject processSearchResult(final String searchScriptOutput) throws ConnectorIOException, IllegalStateException {
         if (searchScriptOutput == null || searchScriptOutput.isEmpty()) {
-            throw new ConnectorException("No search results found!");
+            return null;
         }
 
         final Properties attrs = StringUtil.toProperties(searchScriptOutput);
@@ -135,7 +145,7 @@ public class KerberosCmdExecuteQuery extends KerberosCmdExec {
         return bld.build();
     }
 
-    private void readSearchOutput(final Process proc) throws ConnectorIOException {
+    private List<ConnectorObject> readSearchOutput(final Process proc) throws ConnectorIOException {
         LOG.info("Processing script output ...");
         final BufferedReader br = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         final StringBuilder buffer = new StringBuilder();
@@ -146,7 +156,9 @@ public class KerberosCmdExecuteQuery extends KerberosCmdExec {
             //TODO whitespace/string/newline formatting is built-in/assumed, if it differs code here
             while ((line = br.readLine()) != null) {
                 LOG.ok("Handle search result item {0}", line);
-                if (StringUtil.isNotBlank(kerberosCmdConfiguration.getScriptErrorResponse()) && line.contains(kerberosCmdConfiguration.getScriptErrorResponse())) {
+                if (Boolean.parseBoolean(kerberosCmdConfiguration.getRedirectErrorOutput())
+                        && kerberosCmdConfiguration.getScriptErrorResponse() != null
+                        && line.contains(kerberosCmdConfiguration.getScriptErrorResponse())) {
                     throw new ConnectorIOException("Script failed with error response: " + line.toString());
                 } else {
                     if (filter != null) {
@@ -172,6 +184,6 @@ public class KerberosCmdExecuteQuery extends KerberosCmdExec {
         }
 
         LOG.ok("Found " + results.size() + " search results!");
-        results.forEach(resultsHandler::handle);
+        return results;
     }
 }

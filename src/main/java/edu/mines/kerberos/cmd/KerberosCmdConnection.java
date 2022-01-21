@@ -56,7 +56,7 @@ public class KerberosCmdConnection {
         try {
             final Process proc = builder.start(); //executes the process
             proc.getOutputStream().close();
-            LOG.ok("KerberosScript script execution complete!");
+            LOG.ok("KerberosScript script execution!");
             return proc;
 
         } catch (IOException io) {

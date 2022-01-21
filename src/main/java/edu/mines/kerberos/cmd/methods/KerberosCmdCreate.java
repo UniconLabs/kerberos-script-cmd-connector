@@ -19,10 +19,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import edu.mines.kerberos.cmd.KerberosCmdConfiguration;
+import org.identityconnectors.common.Pair;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.common.security.SecurityUtil;
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.*;
 
 
@@ -42,19 +44,37 @@ public class KerberosCmdCreate extends KerberosCmdExec {
         this.attrs = attrs;
     }
 
-    public Uid execCreateCmd() {
+    public Uid execCreateCmd() throws ConnectorException, IllegalArgumentException {
         final Name name = AttributeUtil.getNameFromAttributes(attrs);
         if (name == null || StringUtil.isBlank(name.getNameValue())) {
             throw new IllegalArgumentException("No Name provided in the attributes");
         }
 
-        final GuardedString gpasswd = getPasswordFromAttributes(AttributeUtil.find(KerberosCmdConfiguration.SCRIPT_PASSWORD_ATTRIBUTE_NAME, attrs));
+        final GuardedString gpasswd = getPasswordFromAttributes(attrs);
         if (gpasswd == null) {
             throw new IllegalArgumentException("No Password provided in the attributes");
         }
         LOG.info("Executing creation for {0}", name.getNameValue());
 
-       scriptExecuteSuccess(execScriptCmd(kerberosCmdConfiguration.getScriptCmdPath(), createAddUserParameters(name, gpasswd), null));
+        Pair<Boolean, String> status = scriptExecuteSuccess(execScriptCmd(kerberosCmdConfiguration.getScriptCmdPath(), createAddUserParameters(name, gpasswd), null));
+
+        if (!status.getKey()) {
+            LOG.error("Kerberos add user didn't return success for [{0}]!", formatUsername(name.getNameValue()));
+            throw new ConnectorException(status.getValue());
+        }
+
+        if (isUserLocked(attrs) == 1) {
+            final List<String> updateLockeStatusParms = new ArrayList<>();
+            updateLockeStatusParms.add(KerberosCmdConfiguration.SCRIPT_LOCK_FLAG);
+            updateLockeStatusParms.add(formatUsername(name.getNameValue()));
+
+            status = scriptExecuteSuccess((execScriptCmd(kerberosCmdConfiguration.getScriptCmdPath(), updateLockeStatusParms, null)));
+
+            if (!status.getKey()) {
+                LOG.error("Kerberos add freeze didn't return success for [{0}]!", formatUsername(name.getNameValue()));
+                //don't throw an error TODO we can if needed
+            }
+        }
 
         return new Uid(name.getNameValue());
     }

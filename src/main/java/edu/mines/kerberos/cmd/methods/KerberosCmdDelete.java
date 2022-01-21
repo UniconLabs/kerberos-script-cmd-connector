@@ -15,10 +15,13 @@
  */
 package edu.mines.kerberos.cmd.methods;
 
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
 import edu.mines.kerberos.cmd.KerberosCmdConfiguration;
+import org.identityconnectors.common.Pair;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.Uid;
 
@@ -39,10 +42,13 @@ public class KerberosCmdDelete extends KerberosCmdExec {
         this.uid = uid;
     }
 
-    public void execDeleteCmd() {
+    public void execDeleteCmd() throws ConnectorException {
         LOG.info("Executing deletion for {0}", uid);
 
-        scriptExecuteSuccess(execScriptCmd(kerberosCmdConfiguration.getScriptCmdPath(), createDeleteUserParameters(), null));
+        final Pair<Boolean,String> status = scriptExecuteSuccess(execScriptCmd(kerberosCmdConfiguration.getScriptCmdPath(), createDeleteUserParameters(), null));
+        if (!status.getKey()) {
+            throw new ConnectorException("Failure while deleting user " + uid.getUidValue() + " with " + status.getValue());
+        }
     }
 
     private List<String> createDeleteUserParameters() {

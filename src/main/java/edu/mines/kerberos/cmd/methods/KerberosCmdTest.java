@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import edu.mines.kerberos.cmd.KerberosCmdConfiguration;
+import org.identityconnectors.common.Pair;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.identityconnectors.framework.common.objects.Attribute;
@@ -36,12 +37,12 @@ public class KerberosCmdTest extends KerberosCmdExec {
         LOG.info("Executing test on {0}", kerberosCmdConfiguration.getTestCmdPath());
         final List<String> testParameters = new ArrayList<>(); //TODO add any needed test parameters here
 
-        boolean success = scriptExecuteSuccess(execScriptCmd(kerberosCmdConfiguration.getTestCmdPath(),
+        final Pair<Boolean,String> success = scriptExecuteSuccess(execScriptCmd(kerberosCmdConfiguration.getTestCmdPath(),
                 testParameters,
                 createEnv(Collections.<Attribute>emptySet(), kerberosCmdConfiguration)));
 
-        if (!success) {
-            throw new ConfigurationException("Kerberos Script process did not return a successful code!");
+        if (!success.getKey()) {
+            throw new ConfigurationException("Kerberos Script process did not return a success: " + success.getValue());
         }
         LOG.ok("Test completed successfully!");
     }
