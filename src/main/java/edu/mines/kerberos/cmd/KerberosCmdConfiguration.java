@@ -80,6 +80,8 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
 
     private String scriptErrorResponse;
 
+    private String scriptUpdateUsernameDeleteAdd;
+
 
     public KerberosCmdConfiguration() {
         this(ObjectClass.ACCOUNT, null);
@@ -117,6 +119,7 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
             setUserLockedAttributeValue(getSafeValue(values, "userLockedAttributeValue", null));
             setUserUnlockedAttributeValue(getSafeValue(values, "userUnlockedAttributeValue", null));
             setScriptErrorResponse(getSafeValue(values, "scriptErrorResponse", null));
+            setScriptUpdateUsernameDeleteAdd(getSafeValue(values, "scriptUpdateUsernameDeleteAdd", null));
 
         } catch (Exception e) {
             LOG.ok("Error setting configuration values! " + e.getMessage());
@@ -222,6 +225,24 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
 
     public void setScriptErrorResponse(final String scriptErrorResponse) {
         this.scriptErrorResponse = scriptErrorResponse;
+    }
+
+    @ConfigurationProperty(displayMessageKey = "kerberosCmd.scriptUpdateUsernameDeleteAdd.display",
+            helpMessageKey = "kerberosCmd.scriptUpdateUsernameDeleteAdd.help", order = 8)
+    public String getScriptUpdateUsernameDeleteAdd() {
+        return trimValue(scriptUpdateUsernameDeleteAdd);
+    }
+
+    public boolean shouldScriptUpdateUsername() {
+        try {
+            return Boolean.parseBoolean(getScriptUpdateUsernameDeleteAdd());
+        } catch (Exception e) {
+            return false; //just in case
+        }
+    }
+
+    public void setScriptUpdateUsernameDeleteAdd(final String scriptUpdateUsernameDeleteAdd) {
+        this.scriptUpdateUsernameDeleteAdd = scriptUpdateUsernameDeleteAdd;
     }
 
     public ObjectClass getObjectClass() {

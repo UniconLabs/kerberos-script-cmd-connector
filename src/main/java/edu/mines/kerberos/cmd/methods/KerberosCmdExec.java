@@ -30,11 +30,7 @@ import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.common.security.SecurityUtil;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
-import org.identityconnectors.framework.common.objects.Attribute;
-import org.identityconnectors.framework.common.objects.AttributeUtil;
-import org.identityconnectors.framework.common.objects.ObjectClass;
-import org.identityconnectors.framework.common.objects.OperationalAttributes;
-import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.framework.common.objects.*;
 
 
 /**
@@ -199,6 +195,20 @@ public abstract class KerberosCmdExec {
             } else {
                 return AttributeUtil.getGuardedStringValue(passwd);
             }
+        }
+
+        return null;
+    }
+
+    protected String getNameFromAttributes(final Set<Attribute> attributes) {
+        Attribute usernameRaw = AttributeUtil.getNameFromAttributes(attributes); //try standard name param
+
+        if (usernameRaw == null) {
+            usernameRaw = AttributeUtil.find(KerberosCmdConfiguration.SCRIPT_USER_NAME_ATTRIBUTE_NAME, attributes); //try set username param
+        }
+
+        if (usernameRaw != null && !usernameRaw.getValue().isEmpty()) {
+            return AttributeUtil.getAsStringValue(usernameRaw).trim();
         }
 
         return null;

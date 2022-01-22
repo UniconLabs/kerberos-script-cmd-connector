@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 import edu.mines.kerberos.cmd.KerberosCmdConfiguration;
 import org.identityconnectors.common.Pair;
+import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.common.security.SecurityUtil;
@@ -51,7 +52,13 @@ public class KerberosCmdUpdate extends KerberosCmdExec {
     public Uid execUpdateCmd() throws ConnectorException {
         LOG.info("Executing the update for {0}", uid);
 
-        Pair<Boolean,String> status = updateUserPassword();
+        Pair<Boolean,String> status = updateUserName();
+        if (!status.getKey()) {
+            throw new ConnectorException("Kerberos update username didn't return success for " + formatUsername(uid.getUidValue()) + " with " + status.getValue());
+
+        }
+
+        status = updateUserPassword();
         if (!status.getKey()) {
             throw new ConnectorException("Kerberos update password didn't return success for " + formatUsername(uid.getUidValue()) + " with " + status.getValue());
 
@@ -63,6 +70,22 @@ public class KerberosCmdUpdate extends KerberosCmdExec {
         }
 
         return uid;
+    }
+
+    private Pair<Boolean,String> updateUserName() {
+        LOG.ok("Creating parameters for username update with: ");
+        LOG.ok("ObjectClass: {0}", oc.getObjectClassValue());
+        LOG.ok("User {0}: {1}", uid.getName(), formatUsername(uid.getUidValue()));
+
+        final String username = getNameFromAttributes(attrs);
+        if (StringUtil.isNotBlank(username) &&
+                kerberosCmdConfiguration.shouldScriptUpdateUsername() &&
+                !uid.getUidValue().equals(username)) {
+            new KerberosCmdDelete(oc, kerberosCmdConfiguration, uid).execDeleteCmd(); //delete user since the script doesn't allow updates?
+            new KerberosCmdCreate(oc, kerberosCmdConfiguration, attrs).execCreateCmd(); //add user with new username
+        }
+
+        return new Pair(Boolean.TRUE, "");
     }
 
     private Pair<Boolean,String> updateUserPassword() {

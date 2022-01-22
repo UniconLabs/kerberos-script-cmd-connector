@@ -45,8 +45,8 @@ public class KerberosCmdCreate extends KerberosCmdExec {
     }
 
     public Uid execCreateCmd() throws ConnectorException, IllegalArgumentException {
-        final Name name = AttributeUtil.getNameFromAttributes(attrs);
-        if (name == null || StringUtil.isBlank(name.getNameValue())) {
+        final String name = getNameFromAttributes(attrs);
+        if (StringUtil.isBlank(name)) {
             throw new IllegalArgumentException("No Name provided in the attributes");
         }
 
@@ -54,39 +54,39 @@ public class KerberosCmdCreate extends KerberosCmdExec {
         if (gpasswd == null) {
             throw new IllegalArgumentException("No Password provided in the attributes");
         }
-        LOG.info("Executing creation for {0}", name.getNameValue());
+        LOG.info("Executing creation for {0}", name);
 
         Pair<Boolean, String> status = scriptExecuteSuccess(execScriptCmd(kerberosCmdConfiguration.getScriptCmdPath(), createAddUserParameters(name, gpasswd), null));
 
         if (!status.getKey()) {
-            LOG.error("Kerberos add user didn't return success for [{0}]!", formatUsername(name.getNameValue()));
+            LOG.error("Kerberos add user didn't return success for [{0}]!", formatUsername(name));
             throw new ConnectorException(status.getValue());
         }
 
         if (isUserLocked(attrs) == 1) {
             final List<String> updateLockeStatusParms = new ArrayList<>();
             updateLockeStatusParms.add(KerberosCmdConfiguration.SCRIPT_LOCK_FLAG);
-            updateLockeStatusParms.add(formatUsername(name.getNameValue()));
+            updateLockeStatusParms.add(formatUsername(name));
 
             status = scriptExecuteSuccess((execScriptCmd(kerberosCmdConfiguration.getScriptCmdPath(), updateLockeStatusParms, null)));
 
             if (!status.getKey()) {
-                LOG.error("Kerberos add freeze didn't return success for [{0}]!", formatUsername(name.getNameValue()));
+                LOG.error("Kerberos add freeze didn't return success for [{0}]!", formatUsername(name));
                 //don't throw an error TODO we can if needed
             }
         }
 
-        return new Uid(name.getNameValue());
+        return new Uid(name);
     }
 
-    private List<String> createAddUserParameters(final Name name, final GuardedString password) {
+    private List<String> createAddUserParameters(final String name, final GuardedString password) {
         LOG.ok("Creating parameters for addition with: ");
         LOG.ok("ObjectClass: {0}", oc.getObjectClassValue());
-        LOG.ok("User {0}", name.getNameValue());
+        LOG.ok("User {0}", name);
 
         final List<String> addUserParams = new ArrayList<>();
         addUserParams.add(KerberosCmdConfiguration.SCRIPT_CREATE_FLAG);
-        addUserParams.add(formatUsername(name.getNameValue()));
+        addUserParams.add(formatUsername(name));
         addUserParams.add(SecurityUtil.decrypt(password));
 
         return addUserParams;

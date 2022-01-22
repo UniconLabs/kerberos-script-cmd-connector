@@ -31,6 +31,7 @@
                 <gen502:userUnlockedAttributeValue>false</gen502:userUnlockedAttributeValue>
                 <gen502:userLockedAttributeValue>true</gen502:userLockedAttributeValue>
                 <gen502:scriptErrorResponse>:error</gen502:scriptErrorResponse>
+                <gen502:scriptUpdateUsernameDeleteAdd>true</gen502:scriptUpdateUsernameDeleteAdd>
             </icfc:configurationProperties>
             <icfc:timeouts>
                 <icfc:create>180000</icfc:create>
@@ -72,19 +73,6 @@
                     </outbound>
                 </attribute>
                 <attribute>
-                    <ref>ri:user_password</ref>
-                    <tolerant>true</tolerant>
-                    <exclusiveStrong>false</exclusiveStrong>
-                    <outbound>
-                        <authoritative>true</authoritative>
-                        <exclusive>false</exclusive>
-                        <strength>normal</strength>
-                        <source>
-                            <path>password</path>
-                        </source>
-                    </outbound>
-                </attribute>
-                <attribute>
                     <ref>ri:user_locked</ref>
                     <tolerant>true</tolerant>
                     <exclusiveStrong>false</exclusiveStrong>
@@ -97,6 +85,11 @@
                         </source>
                     </outbound>
                 </attribute>
+                <credentials>
+                    <password xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ResourcePasswordDefinitionType">
+                        <outbound/>
+                    </password>
+                </credentials>
             </objectType>
         </schemaHandling>
         <capabilities>
