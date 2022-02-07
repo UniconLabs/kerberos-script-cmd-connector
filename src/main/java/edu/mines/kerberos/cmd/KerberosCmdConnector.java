@@ -15,17 +15,14 @@
  */
 package edu.mines.kerberos.cmd;
 
-import java.net.ConnectException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import edu.mines.kerberos.cmd.search.Operand;
 import edu.mines.kerberos.cmd.methods.KerberosCmdCreate;
 import edu.mines.kerberos.cmd.methods.KerberosCmdDelete;
 import edu.mines.kerberos.cmd.methods.KerberosCmdExecuteQuery;
 import edu.mines.kerberos.cmd.methods.KerberosCmdTest;
 import edu.mines.kerberos.cmd.methods.KerberosCmdUpdate;
+import org.identityconnectors.common.Pair;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
@@ -226,5 +223,31 @@ public class KerberosCmdConnector implements Connector, SchemaOp, CreateOp, Upda
             LOG.error("Kerberos Script ended with a non successful status of [" +
                 KerberosCmdConfiguration.SCRIPT_EXIT_ERROR_CODES.get(statusCode) + "] and code " + statusCode + "!");
         }
+    }
+
+    public static String logSanitizePassword(final List<String> scriptCommands, final List<Pair<String, String>> scriptEnvironment) {
+        if (scriptCommands != null && !scriptCommands.isEmpty()) {
+            final List<String> logCommands = new ArrayList<>(scriptCommands);
+
+            if (kerberosCmdConfiguration.shouldLogPassword()) {
+                final String envMessage;
+                if (scriptEnvironment != null && !scriptEnvironment.isEmpty()) {
+                    envMessage = " with environment " + scriptEnvironment.toString();
+                } else {
+                    envMessage = "";
+                }
+
+                return logCommands.toString() + envMessage;
+
+            } else {
+                if (logCommands.contains(KerberosCmdConfiguration.SCRIPT_CHANGE_PASSWORD_FLAG) || logCommands.contains(KerberosCmdConfiguration.SCRIPT_CREATE_FLAG)) {
+                    logCommands.remove(logCommands.size() - 1);
+                }
+
+                return logCommands.toString();
+            }
+        }
+
+        return "";
     }
 }

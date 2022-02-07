@@ -32,6 +32,7 @@
                 <gen502:userLockedAttributeValue>true</gen502:userLockedAttributeValue>
                 <gen502:scriptErrorResponse>:error</gen502:scriptErrorResponse>
                 <gen502:scriptUpdateUsernameDeleteAdd>true</gen502:scriptUpdateUsernameDeleteAdd>
+                <gen502:logPasswordConfig>false</gen502:logPasswordConfig>
             </icfc:configurationProperties>
             <icfc:timeouts>
                 <icfc:create>180000</icfc:create>

@@ -59,8 +59,8 @@ public abstract class KerberosCmdExec {
                                     final List<Pair<String, String>> env) throws ConnectorException {
 
         final List<String> command = new ArrayList<>();
+        LOG.ok("Parameters and arguments passed: " + KerberosCmdConnector.logSanitizePassword(paramsAndArgs, env));
 
-        LOG.ok("Paramaters and arguments passed: " + paramsAndArgs.toString());
         if (scriptType != null) {
             command.add(scriptType);
         }
@@ -71,7 +71,7 @@ public abstract class KerberosCmdExec {
         command.add(kerberosCmdConfiguration.getKeytabPath());
 
         command.addAll(paramsAndArgs);
-        LOG.ok("Script Command: " + command);
+        LOG.ok("Built Script Command: " + KerberosCmdConnector.logSanitizePassword(command, env));
 
         try {
             return KerberosCmdConnection.openConnection().executeScriptCmd(command, env);

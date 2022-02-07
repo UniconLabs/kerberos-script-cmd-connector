@@ -82,6 +82,8 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
 
     private String scriptUpdateUsernameDeleteAdd;
 
+    private String logPasswordConfig;
+
 
     public KerberosCmdConfiguration() {
         this(ObjectClass.ACCOUNT, null);
@@ -120,6 +122,7 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
             setUserUnlockedAttributeValue(getSafeValue(values, "userUnlockedAttributeValue", null));
             setScriptErrorResponse(getSafeValue(values, "scriptErrorResponse", null));
             setScriptUpdateUsernameDeleteAdd(getSafeValue(values, "scriptUpdateUsernameDeleteAdd", null));
+            setLogPasswordConfig(getSafeValue(values, logPasswordConfig, "false"));
 
         } catch (Exception e) {
             LOG.ok("Error setting configuration values! " + e.getMessage());
@@ -233,16 +236,26 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
         return trimValue(scriptUpdateUsernameDeleteAdd);
     }
 
-    public boolean shouldScriptUpdateUsername() {
-        try {
-            return Boolean.parseBoolean(getScriptUpdateUsernameDeleteAdd());
-        } catch (Exception e) {
-            return false; //just in case
-        }
-    }
-
     public void setScriptUpdateUsernameDeleteAdd(final String scriptUpdateUsernameDeleteAdd) {
         this.scriptUpdateUsernameDeleteAdd = scriptUpdateUsernameDeleteAdd;
+    }
+
+    public boolean shouldScriptUpdateUsername() {
+        return convertStringToBoolean(getScriptUpdateUsernameDeleteAdd());
+    }
+
+    @ConfigurationProperty(displayMessageKey = "kerberosCmd.logPasswordConfig.display",
+            helpMessageKey = "kerberosCmd.logPasswordConfig.help", order = 8)
+    public String getLogPasswordConfig() {
+        return trimValue(logPasswordConfig);
+    }
+
+    public void setLogPasswordConfig(final String logPasswordConfig) {
+        this.logPasswordConfig = logPasswordConfig;
+    }
+
+    public boolean shouldLogPassword() {
+        return convertStringToBoolean(getLogPasswordConfig());
     }
 
     public ObjectClass getObjectClass() {
@@ -297,5 +310,13 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
         }
 
         return null;
+    }
+
+    private boolean convertStringToBoolean(final String stringToParse) {
+        try {
+            return Boolean.parseBoolean(stringToParse);
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

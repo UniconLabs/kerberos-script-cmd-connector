@@ -42,7 +42,7 @@ public class KerberosCmdConnection {
     }
 
     public Process executeScriptCmd(final List<String> command, final List<Pair<String, String>> env) throws ConnectorIOException {
-        LOG.info("KerberosScript executing script {0} {1}", command, env);
+        LOG.info("KerberosScript executing script: {0}", KerberosCmdConnector.logSanitizePassword(command, env));
 
         final ProcessBuilder builder = new ProcessBuilder(command); //script path and arguments are in the command
         builder.redirectErrorStream(KerberosCmdConfiguration.shouldRedirectErrorOutput);
