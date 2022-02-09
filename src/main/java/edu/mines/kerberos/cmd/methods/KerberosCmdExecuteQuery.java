@@ -95,16 +95,15 @@ public class KerberosCmdExecuteQuery extends KerberosCmdExec {
                     new ArrayList<>(List.of(searchScriptOutput.replace(KerberosCmdConfiguration.SCRIPT_SINGLE_RESULT_HEADER, "")
                             .replace(System.lineSeparator(), "").trim().split("\\s+")));
 
-                final StringBuilder singleSearchCompiledResult = new StringBuilder(singleSearchRawResult.get(0) +
-                        kerberosCmdConfiguration.getDomainToRemoveFromSearchParam()); //For consistency adds back domain to search result username
+            final StringBuilder singleSearchCompiledResult = new StringBuilder(formatSearchResultUsername(singleSearchRawResult.get(0)));
             singleSearchRawResult.remove(0); //removes username grabbed above
             singleSearchRawResult.remove(0); //removes the hex value (value right after username)
 
-                singleSearchRawResult.forEach(it -> {
-                    singleSearchCompiledResult.append(" ").append(it); //adds flags
-                });
+            singleSearchRawResult.forEach(it -> {
+                singleSearchCompiledResult.append(" ").append(it); //adds flags
+            });
 
-                return processSearchResult(singleSearchCompiledResult.toString().trim());
+            return processSearchResult(singleSearchCompiledResult.toString().trim());
         }
 
         return processSearchResult(searchScriptOutput);
@@ -124,9 +123,10 @@ public class KerberosCmdExecuteQuery extends KerberosCmdExec {
             boolean isUserLocked = false;
 
             if (StringUtil.isNotBlank(username)) {
-                bld.setName(username);
-                bld.setUid(username);
-                bld.addAttribute(KerberosCmdConfiguration.SCRIPT_USER_NAME_ATTRIBUTE_NAME, username);
+                final String fmtdUsername = formatSearchResultUsername(username);
+                bld.setName(fmtdUsername);
+                bld.setUid(fmtdUsername);
+                bld.addAttribute(KerberosCmdConfiguration.SCRIPT_USER_NAME_ATTRIBUTE_NAME, fmtdUsername);
 
                 if (StringUtil.isNotBlank(userdata)) {
                     bld.addAttribute(KerberosCmdConfiguration.SCRIPT_USER_FLAGS_ATTRIBUTE_NAME, userdata);
@@ -185,5 +185,15 @@ public class KerberosCmdExecuteQuery extends KerberosCmdExec {
 
         LOG.ok("Found " + results.size() + " search results!");
         return results;
+    }
+
+    private String formatSearchResultUsername(final String username) {
+        if (kerberosCmdConfiguration.shouldReturnUsernameDomain() && !username.contains(kerberosCmdConfiguration.getUsernameDomain())) {
+            return (username.trim() + kerberosCmdConfiguration.getUsernameDomain()); //For consistency adds back domain to search result username
+        } else if (!kerberosCmdConfiguration.shouldReturnUsernameDomain() && username.contains(kerberosCmdConfiguration.getUsernameDomain())) {
+            return formatUsername(username.trim());
+        } else {
+            return username.trim();
+        }
     }
 }

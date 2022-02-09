@@ -50,54 +50,55 @@ public class KerberosCmdUpdate extends KerberosCmdExec {
     }
 
     public Uid execUpdateCmd() throws ConnectorException {
-        LOG.info("Executing the update for {0}", uid);
+        final Uid formattedUid = createFormattedUsernameUid(uid.getUidValue());
+        LOG.info("Executing the update for {0}", formattedUid);
 
-        Pair<Boolean,String> status = updateUserName();
+        Pair<Boolean,String> status = updateUserName(formattedUid);
         if (!status.getKey()) {
-            throw new ConnectorException("Kerberos update username didn't return success for " + formatUsername(uid.getUidValue()) + " with " + status.getValue());
+            throw new ConnectorException("Kerberos update username didn't return success for " + formattedUid.getUidValue() + " with " + status.getValue());
 
         }
 
-        status = updateUserPassword();
+        status = updateUserPassword(formattedUid);
         if (!status.getKey()) {
-            throw new ConnectorException("Kerberos update password didn't return success for " + formatUsername(uid.getUidValue()) + " with " + status.getValue());
+            throw new ConnectorException("Kerberos update password didn't return success for " + formattedUid.getUidValue() + " with " + status.getValue());
 
         }
 
-        status = updateUserLockStatus();
+        status = updateUserLockStatus(formattedUid);
         if (!status.getKey()) {
-            throw new ConnectorException("Kerberos update thaw or freeze didn't return success for " + formatUsername(uid.getUidValue()) + " with " + status.getValue());
+            throw new ConnectorException("Kerberos update thaw or freeze didn't return success for " + formattedUid.getUidValue() + " with " + status.getValue());
         }
 
         return uid;
     }
 
-    private Pair<Boolean,String> updateUserName() {
+    private Pair<Boolean,String> updateUserName(final Uid formattedUid) {
         LOG.ok("Creating parameters for username update with: ");
         LOG.ok("ObjectClass: {0}", oc.getObjectClassValue());
-        LOG.ok("User {0}: {1}", uid.getName(), formatUsername(uid.getUidValue()));
+        LOG.ok("User {0}: {1}", uid.getName(), formattedUid.getUidValue());
 
         final String username = getNameFromAttributes(attrs);
         if (StringUtil.isNotBlank(username) &&
                 kerberosCmdConfiguration.shouldScriptUpdateUsername() &&
-                !uid.getUidValue().equals(username)) {
-            new KerberosCmdDelete(oc, kerberosCmdConfiguration, uid).execDeleteCmd(); //delete user since the script doesn't allow updates?
+                !formattedUid.getUidValue().equals(username)) {
+            new KerberosCmdDelete(oc, kerberosCmdConfiguration, formattedUid).execDeleteCmd(); //delete user since the script doesn't allow updates?
             new KerberosCmdCreate(oc, kerberosCmdConfiguration, attrs).execCreateCmd(); //add user with new username
         }
 
         return new Pair(Boolean.TRUE, "");
     }
 
-    private Pair<Boolean,String> updateUserPassword() {
+    private Pair<Boolean,String> updateUserPassword(final Uid formattedUid) {
         LOG.ok("Creating parameters for password update with: ");
         LOG.ok("ObjectClass: {0}", oc.getObjectClassValue());
-        LOG.ok("User {0}: {1}", uid.getName(), formatUsername(uid.getUidValue()));
+        LOG.ok("User {0}: {1}", uid.getName(), formattedUid.getUidValue());
 
         final List<String> updatePasswordParameters = new ArrayList<>();
         final GuardedString gpasswd = getPasswordFromAttributes(attrs);
         if (gpasswd != null) {
             updatePasswordParameters.add(KerberosCmdConfiguration.SCRIPT_CHANGE_PASSWORD_FLAG);
-            updatePasswordParameters.add(formatUsername(uid.getUidValue()));
+            updatePasswordParameters.add(formatUsername(formattedUid.getUidValue()));
             updatePasswordParameters.add(SecurityUtil.decrypt(gpasswd));
         }
 
@@ -108,20 +109,20 @@ public class KerberosCmdUpdate extends KerberosCmdExec {
         }
     }
 
-    private Pair<Boolean,String> updateUserLockStatus() {
+    private Pair<Boolean,String> updateUserLockStatus(final Uid formattedUid) {
         LOG.ok("Creating parameters for freeze/thaw update with: ");
         LOG.ok("ObjectClass: {0}", oc.getObjectClassValue());
-        LOG.ok("User {0}: {1}", uid.getName(), formatUsername(uid.getUidValue()));
+        LOG.ok("User {0}: {1}", uid.getName(), formattedUid.getUidValue());
         final List<String> updateThawFreezeParameters = new ArrayList<>();
 
         final int userLocked = isUserLocked(attrs);
         if (userLocked == 1) {
             updateThawFreezeParameters.add(KerberosCmdConfiguration.SCRIPT_LOCK_FLAG);
-            updateThawFreezeParameters.add(formatUsername(uid.getUidValue()));
+            updateThawFreezeParameters.add(formatUsername(formattedUid.getUidValue()));
 
         } else if (userLocked == 0) {
             updateThawFreezeParameters.add(KerberosCmdConfiguration.SCRIPT_UNLOCK_FLAG);
-            updateThawFreezeParameters.add(formatUsername(uid.getUidValue()));
+            updateThawFreezeParameters.add(formatUsername(formattedUid.getUidValue()));
 
         } else {
             //TODO confirm if unknown or not set do nothing for locked/thaw/freeze

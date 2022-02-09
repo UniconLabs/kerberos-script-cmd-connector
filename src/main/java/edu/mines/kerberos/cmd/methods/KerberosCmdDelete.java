@@ -38,27 +38,27 @@ public class KerberosCmdDelete extends KerberosCmdExec {
 
     public KerberosCmdDelete(final ObjectClass oc, final KerberosCmdConfiguration kerberosCmdConfiguration, final Uid uid) {
         super(oc, kerberosCmdConfiguration);
-
         this.uid = uid;
     }
 
     public void execDeleteCmd() throws ConnectorException {
-        LOG.info("Executing deletion for {0}", uid);
+        final Uid formattedUid = createFormattedUsernameUid(uid.getUidValue());
+        LOG.info("Executing deletion for {0}", formattedUid);
 
-        final Pair<Boolean,String> status = scriptExecuteSuccess(execScriptCmd(kerberosCmdConfiguration.getScriptCmdPath(), createDeleteUserParameters(), null));
+        final Pair<Boolean,String> status = scriptExecuteSuccess(execScriptCmd(kerberosCmdConfiguration.getScriptCmdPath(), createDeleteUserParameters(formattedUid), null));
         if (!status.getKey()) {
-            throw new ConnectorException("Failure while deleting user " + uid.getUidValue() + " with " + status.getValue());
+            throw new ConnectorException("Failure while deleting user " + formattedUid.getUidValue() + " with " + status.getValue());
         }
     }
 
-    private List<String> createDeleteUserParameters() {
+    private List<String> createDeleteUserParameters(final Uid formattedUid) {
         LOG.ok("Creating parameters for deletion with: ");
         LOG.ok("ObjectClass: {0}", oc.getObjectClassValue());
-        LOG.ok("User {0}: {1}", uid.getName(), formatUsername(uid.getUidValue()));
+        LOG.ok("User {0}: {1}", uid.getName(), formattedUid.getUidValue());
 
         final List<String> deleteUserParams = new ArrayList<>();
         deleteUserParams.add(KerberosCmdConfiguration.SCRIPT_DELETE_FLAG);
-        deleteUserParams.add(formatUsername(uid.getUidValue()));
+        deleteUserParams.add(formatUsername(formattedUid.getUidValue()));
 
         return deleteUserParams;
     }

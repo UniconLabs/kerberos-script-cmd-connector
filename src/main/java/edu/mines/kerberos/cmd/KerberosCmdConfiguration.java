@@ -72,7 +72,7 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
 
     private String testCmdPath ;
 
-    private String domainToRemoveFromSearchParam;
+    private String usernameDomain;
 
     private String userLockedAttributeValue;
 
@@ -83,6 +83,8 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
     private String scriptUpdateUsernameDeleteAdd;
 
     private String logPasswordConfig;
+
+    private String shouldReturnUsernameDomain;
 
 
     public KerberosCmdConfiguration() {
@@ -117,12 +119,13 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
             setScriptCmdType(getSafeValue(values, "scriptCmdType", null));
             setTestCmdPath(getSafeValue(values, "testCmdPath", null));
             setRedirectErrorOutput(getSafeValue(values, "redirectErrorOutput", null));
-            setDomainToRemoveFromSearchParam(getSafeValue(values, "domainToRemoveFromSearchParam", null));
+            setUsernameDomain(getSafeValue(values, "usernameDomain", null));
             setUserLockedAttributeValue(getSafeValue(values, "userLockedAttributeValue", null));
             setUserUnlockedAttributeValue(getSafeValue(values, "userUnlockedAttributeValue", null));
             setScriptErrorResponse(getSafeValue(values, "scriptErrorResponse", null));
             setScriptUpdateUsernameDeleteAdd(getSafeValue(values, "scriptUpdateUsernameDeleteAdd", null));
             setLogPasswordConfig(getSafeValue(values, logPasswordConfig, "false"));
+            setShouldReturnUsernameDomain(getSafeValue(values, shouldReturnUsernameDomain, "false"));
 
         } catch (Exception e) {
             LOG.ok("Error setting configuration values! " + e.getMessage());
@@ -190,14 +193,14 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
         shouldRedirectErrorOutput = Boolean.parseBoolean(trimValue(redirectErrorOutput));
     }
 
-    @ConfigurationProperty(displayMessageKey = "kerberosCmd.domainToRemoveFromSearchParam.display",
-            helpMessageKey = "kerberosCmd.domainToRemoveFromSearchParam.help", order = 6)
-    public String getDomainToRemoveFromSearchParam() {
-        return trimValue(domainToRemoveFromSearchParam);
+    @ConfigurationProperty(displayMessageKey = "kerberosCmd.usernameDomain.display",
+            helpMessageKey = "kerberosCmd.usernameDomain.help", order = 6)
+    public String getUsernameDomain() {
+        return trimValue(usernameDomain);
     }
 
-    public void setDomainToRemoveFromSearchParam(final String domainToRemoveFromSearchParam) {
-        this.domainToRemoveFromSearchParam = domainToRemoveFromSearchParam;
+    public void setUsernameDomain(final String usernameDomain) {
+        this.usernameDomain = usernameDomain;
     }
 
     @ConfigurationProperty(displayMessageKey = "kerberosCmd.userLockedAttributeValue.display",
@@ -256,6 +259,20 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
 
     public boolean shouldLogPassword() {
         return convertStringToBoolean(getLogPasswordConfig());
+    }
+
+    @ConfigurationProperty(displayMessageKey = "kerberosCmd.shouldReturnUsernameDomain.display",
+            helpMessageKey = "kerberosCmd.shouldReturnUsernameDomain.help", order = 8)
+    public String getShouldReturnUsernameDomain() {
+        return trimValue(shouldReturnUsernameDomain);
+    }
+
+    public void setShouldReturnUsernameDomain(final String shouldReturnUsernameDomain) {
+        this.shouldReturnUsernameDomain = shouldReturnUsernameDomain;
+    }
+
+    public boolean shouldReturnUsernameDomain() {
+        return convertStringToBoolean(getShouldReturnUsernameDomain());
     }
 
     public ObjectClass getObjectClass() {

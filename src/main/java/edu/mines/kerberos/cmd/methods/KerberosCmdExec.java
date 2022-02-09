@@ -232,9 +232,13 @@ public abstract class KerberosCmdExec {
         return -1;
     }
 
+    protected Uid createFormattedUsernameUid(final String username) {
+        return new Uid(formatUsername(username));
+    }
+
     protected String formatUsername(final String rawUsernameParam) {
-        if (StringUtil.isNotBlank(kerberosCmdConfiguration.getDomainToRemoveFromSearchParam())) {
-            return rawUsernameParam.replaceAll(kerberosCmdConfiguration.getDomainToRemoveFromSearchParam(), "").trim();
+        if (StringUtil.isNotBlank(kerberosCmdConfiguration.getUsernameDomain())) {
+            return rawUsernameParam.replaceAll(kerberosCmdConfiguration.getUsernameDomain(), "").trim();
         }
 
         return rawUsernameParam.trim();

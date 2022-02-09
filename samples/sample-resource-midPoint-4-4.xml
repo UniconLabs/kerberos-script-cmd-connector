@@ -27,12 +27,13 @@
                 <gen502:testCmdPath>/usr/local/bin/managekerberos.pl</gen502:testCmdPath>
                 <gen502:scriptCmdType>perl</gen502:scriptCmdType>
                 <gen502:redirectErrorOutput>false</gen502:redirectErrorOutput>
-                <gen502:domainToRemoveFromSearchParam>@DEV.MINES.EDU</gen502:domainToRemoveFromSearchParam>
+                <gen502:usernameDomain>@DEV.MINES.EDU</gen502:usernameDomain>
                 <gen502:userUnlockedAttributeValue>false</gen502:userUnlockedAttributeValue>
                 <gen502:userLockedAttributeValue>true</gen502:userLockedAttributeValue>
                 <gen502:scriptErrorResponse>:error</gen502:scriptErrorResponse>
                 <gen502:scriptUpdateUsernameDeleteAdd>true</gen502:scriptUpdateUsernameDeleteAdd>
                 <gen502:logPasswordConfig>false</gen502:logPasswordConfig>
+                <gen502:shouldReturnUsernameDomain>false</gen502:shouldReturnUsernameDomain>
             </icfc:configurationProperties>
             <icfc:timeouts>
                 <icfc:create>180000</icfc:create>
