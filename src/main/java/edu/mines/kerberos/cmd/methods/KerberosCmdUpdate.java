@@ -23,7 +23,6 @@ import org.identityconnectors.common.Pair;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.common.security.SecurityUtil;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.*;
 
@@ -51,18 +50,12 @@ public class KerberosCmdUpdate extends KerberosCmdExec {
 
     public Uid execUpdateCmd() throws ConnectorException {
         final Uid formattedUid = createFormattedUsernameUid(uid.getUidValue());
+        Pair<Boolean,String> status;
         LOG.info("Executing the update for {0}", formattedUid);
-
-        Pair<Boolean,String> status = updateUserName(formattedUid);
-        if (!status.getKey()) {
-            throw new ConnectorException("Kerberos update username didn't return success for " + formattedUid.getUidValue() + " with " + status.getValue());
-
-        }
 
         status = updateUserPassword(formattedUid);
         if (!status.getKey()) {
             throw new ConnectorException("Kerberos update password didn't return success for " + formattedUid.getUidValue() + " with " + status.getValue());
-
         }
 
         status = updateUserLockStatus(formattedUid);
@@ -70,23 +63,13 @@ public class KerberosCmdUpdate extends KerberosCmdExec {
             throw new ConnectorException("Kerberos update thaw or freeze didn't return success for " + formattedUid.getUidValue() + " with " + status.getValue());
         }
 
-        return uid;
-    }
+        status = updateUserName(formattedUid);
+        if (!status.getKey()) {
+            throw new ConnectorException("Kerberos update username didn't return success for " + formattedUid.getUidValue() + " with " + status.getValue());
 
-    private Pair<Boolean,String> updateUserName(final Uid formattedUid) {
-        LOG.ok("Creating parameters for username update with: ");
-        LOG.ok("ObjectClass: {0}", oc.getObjectClassValue());
-        LOG.ok("User {0}: {1}", uid.getName(), formattedUid.getUidValue());
-
-        final String username = getNameFromAttributes(attrs);
-        if (StringUtil.isNotBlank(username) &&
-                kerberosCmdConfiguration.shouldScriptUpdateUsername() &&
-                !formattedUid.getUidValue().equals(username)) {
-            new KerberosCmdDelete(oc, kerberosCmdConfiguration, formattedUid).execDeleteCmd(); //delete user since the script doesn't allow updates?
-            new KerberosCmdCreate(oc, kerberosCmdConfiguration, attrs).execCreateCmd(); //add user with new username
         }
 
-        return new Pair(Boolean.TRUE, "");
+        return uid;
     }
 
     private Pair<Boolean,String> updateUserPassword(final Uid formattedUid) {
@@ -98,8 +81,7 @@ public class KerberosCmdUpdate extends KerberosCmdExec {
         final GuardedString gpasswd = getPasswordFromAttributes(attrs);
         if (gpasswd != null) {
             updatePasswordParameters.add(KerberosCmdConfiguration.SCRIPT_CHANGE_PASSWORD_FLAG);
-            updatePasswordParameters.add(formatUsername(formattedUid.getUidValue()));
-            updatePasswordParameters.add(SecurityUtil.decrypt(gpasswd));
+            setUsernameAndPassword(formattedUid.getUidValue(), gpasswd, updatePasswordParameters);
         }
 
         if (!updatePasswordParameters.isEmpty()) {
@@ -118,11 +100,11 @@ public class KerberosCmdUpdate extends KerberosCmdExec {
         final int userLocked = isUserLocked(attrs);
         if (userLocked == 1) {
             updateThawFreezeParameters.add(KerberosCmdConfiguration.SCRIPT_LOCK_FLAG);
-            updateThawFreezeParameters.add(formatUsername(formattedUid.getUidValue()));
+            updateThawFreezeParameters.add(formattedUid.getUidValue());
 
         } else if (userLocked == 0) {
             updateThawFreezeParameters.add(KerberosCmdConfiguration.SCRIPT_UNLOCK_FLAG);
-            updateThawFreezeParameters.add(formatUsername(formattedUid.getUidValue()));
+            updateThawFreezeParameters.add(formattedUid.getUidValue());
 
         } else {
             //TODO confirm if unknown or not set do nothing for locked/thaw/freeze
@@ -133,5 +115,26 @@ public class KerberosCmdUpdate extends KerberosCmdExec {
         } else {
             return new Pair(Boolean.TRUE, "");
         }
+    }
+
+    private Pair<Boolean,String> updateUserName(final Uid formattedUid) {
+        LOG.ok("Creating parameters for username update with: ");
+        LOG.ok("ObjectClass: {0}", oc.getObjectClassValue());
+        LOG.ok("User {0}: {1}", uid.getName(), formattedUid.getUidValue());
+
+        final String username = getNameFromAttributes(attrs);
+        if (StringUtil.isNotBlank(username) &&
+                kerberosCmdConfiguration.shouldScriptUpdateUsername() &&
+                !formattedUid.getUidValue().equals(username)) {
+
+            final List<String> updateUsernameParameters = new ArrayList<>();
+            updateUsernameParameters.add(KerberosCmdConfiguration.SCRIPT_CHANGE_USERNAME_FLAG);
+            updateUsernameParameters.add(formattedUid.getUidValue());
+            updateUsernameParameters.add(formatUsername(username));
+
+            return scriptExecuteSuccess((execScriptCmd(kerberosCmdConfiguration.getScriptCmdPath(), updateUsernameParameters, null)));
+        }
+
+        return new Pair(Boolean.TRUE, "");
     }
 }

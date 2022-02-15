@@ -16,8 +16,11 @@
 package edu.mines.kerberos.cmd.methods;
 
 import java.io.BufferedReader;
+import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -80,6 +83,53 @@ public abstract class KerberosCmdExec {
             LOG.error(e, "Error executing script: " + command);
             throw new ConnectorException(e);
         }
+    }
+
+    protected boolean setUsernameAndPassword(final String username, final GuardedString password, final List<String> scriptParameters) {
+        if (!kerberosCmdConfiguration.shouldSetPasswordsAsScriptArgument()) {
+
+            final String fileSeparator = FileSystems.getDefault().getSeparator();
+            final String passwordFileName;
+            final String passwordFileFullPath;
+            String passwordFileLocation;
+
+            if (username.contains("@")) {
+                passwordFileName = username.split("@")[0];
+            } else {
+                passwordFileName = username;
+            }
+
+            if (StringUtil.isNotBlank(kerberosCmdConfiguration.getPasswordFilePath())) {
+                passwordFileLocation = kerberosCmdConfiguration.getPasswordFilePath();
+            } else {
+                try {
+                    passwordFileLocation = (System.getenv("MIDPOINT_HOME") + fileSeparator + "tmp");
+                } catch (Exception e) {
+                    //swallow
+                    passwordFileLocation = fileSeparator + "opt" + fileSeparator + "midpoint" + fileSeparator + "var" + fileSeparator + "tmp";
+                }
+            }
+
+            passwordFileFullPath = passwordFileLocation + fileSeparator + passwordFileName;
+            final boolean fileCreated = createPasswordFile(password, passwordFileFullPath);
+
+            if (fileCreated) {
+                scriptParameters.add(KerberosCmdConfiguration.SCRIPT_PASSWORD_FILE_FLAG);
+                scriptParameters.add(passwordFileFullPath);
+                scriptParameters.add(username);
+                return true;
+
+            } else {
+                //Can add other options here if remove connector exception in createPasswordFile method
+            }
+
+        } else {
+            scriptParameters.add(username);
+            scriptParameters.add(SecurityUtil.decrypt(password));
+            return true;
+        }
+
+        return false;
     }
 
     //Not used
@@ -191,7 +241,7 @@ public abstract class KerberosCmdExec {
             }
 
             if (passwd == null) {
-                throw new IllegalArgumentException("No Password provided in the attributes");
+                return null;
             } else {
                 return AttributeUtil.getGuardedStringValue(passwd);
             }
@@ -248,6 +298,19 @@ public abstract class KerberosCmdExec {
         if (kerberosCmdConfiguration != null && StringUtil.isNotBlank(kerberosCmdConfiguration.getScriptCmdType())) {
             this.scriptType = kerberosCmdConfiguration.getScriptCmdType();
         }
+    }
+
+    private boolean createPasswordFile(final GuardedString password, final String fileFullPath) {
+        try (final FileWriter fw = new FileWriter(fileFullPath, StandardCharsets.UTF_8, false)) {
+            fw.write(SecurityUtil.decrypt(password));
+            return true;
+
+        } catch (Exception e) {
+            LOG.warn("Error saving password with " + e.getMessage());
+            throw new ConnectorException("Error saving password file!", e); //Can remove if add other options
+        }
+
+        //return false;
     }
 
     private static class ReadProcessOutput implements Callable<List<String>> {

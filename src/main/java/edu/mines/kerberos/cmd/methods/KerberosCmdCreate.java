@@ -23,7 +23,6 @@ import org.identityconnectors.common.Pair;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.common.security.SecurityUtil;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.*;
 
@@ -86,8 +85,7 @@ public class KerberosCmdCreate extends KerberosCmdExec {
 
         final List<String> addUserParams = new ArrayList<>();
         addUserParams.add(KerberosCmdConfiguration.SCRIPT_CREATE_FLAG);
-        addUserParams.add(formattedName);
-        addUserParams.add(SecurityUtil.decrypt(password));
+        setUsernameAndPassword(formattedName, password, addUserParams);
 
         return addUserParams;
     }

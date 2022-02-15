@@ -45,6 +45,8 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
     public static final String SCRIPT_CHANGE_PASSWORD_FLAG = "-c";
     public static final String SCRIPT_LIST_ALL_USERS_FLAG = "-l";
     public static final String SCRIPT_SHOW_DETAILS_FLAG = "-s";
+    public static final String SCRIPT_PASSWORD_FILE_FLAG = "-w";
+    public static final String SCRIPT_CHANGE_USERNAME_FLAG = "-r";
 
     public static final String SCRIPT_PASSWORD_ATTRIBUTE_NAME = "user_password";
     public static final String SCRIPT_USER_NAME_ATTRIBUTE_NAME = "user_name";
@@ -80,11 +82,15 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
 
     private String scriptErrorResponse;
 
-    private String scriptUpdateUsernameDeleteAdd;
+    private String scriptUpdateUsername;
 
     private String logPasswordConfig;
 
     private String shouldReturnUsernameDomain;
+
+    private String passwordFilePath;
+
+    private String shouldSetPasswordsAsScriptArgument;
 
 
     public KerberosCmdConfiguration() {
@@ -123,9 +129,11 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
             setUserLockedAttributeValue(getSafeValue(values, "userLockedAttributeValue", null));
             setUserUnlockedAttributeValue(getSafeValue(values, "userUnlockedAttributeValue", null));
             setScriptErrorResponse(getSafeValue(values, "scriptErrorResponse", null));
-            setScriptUpdateUsernameDeleteAdd(getSafeValue(values, "scriptUpdateUsernameDeleteAdd", null));
+            setScriptUpdateUsername(getSafeValue(values, "scriptUpdateUsername", null));
             setLogPasswordConfig(getSafeValue(values, logPasswordConfig, "false"));
             setShouldReturnUsernameDomain(getSafeValue(values, shouldReturnUsernameDomain, "false"));
+            setPasswordFilePath(getSafeValue(values, getPasswordFilePath(), null));
+            setShouldSetPasswordsAsScriptArgument(getSafeValue(values, getShouldSetPasswordsAsScriptArgument(), "true"));
 
         } catch (Exception e) {
             LOG.ok("Error setting configuration values! " + e.getMessage());
@@ -183,6 +191,30 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
         this.testCmdPath = testCmdPath;
     }
 
+    @ConfigurationProperty(displayMessageKey = "kerberosCmd.passwordFilePath.display",
+            helpMessageKey = "kerberosCmd.passwordFilePath.help", order = 8)
+    public String getPasswordFilePath() {
+        return trimValue(passwordFilePath);
+    }
+
+    public void setPasswordFilePath(final String passwordFilePath) {
+        this.passwordFilePath = passwordFilePath;
+    }
+
+    @ConfigurationProperty(displayMessageKey = "kerberosCmd.shouldSetPasswordsAsScriptArgument.display",
+            helpMessageKey = "kerberosCmd.shouldSetPasswordsAsScriptArgument.help", order = 9)
+    public String getShouldSetPasswordsAsScriptArgument() {
+        return trimValue(shouldSetPasswordsAsScriptArgument);
+    }
+
+    public void setShouldSetPasswordsAsScriptArgument(final String shouldSetPasswordsAsScriptArgument) {
+        this.shouldSetPasswordsAsScriptArgument = shouldSetPasswordsAsScriptArgument;
+    }
+
+    public boolean shouldSetPasswordsAsScriptArgument() {
+        return convertStringToBoolean(getShouldSetPasswordsAsScriptArgument());
+    }
+
     @ConfigurationProperty(displayMessageKey = "kerberosCmd.redirectErrorOutput.display",
             helpMessageKey = "kerberosCmd.redirectErrorOutput.help", order = 5)
     public String getRedirectErrorOutput() {
@@ -204,7 +236,7 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
     }
 
     @ConfigurationProperty(displayMessageKey = "kerberosCmd.userLockedAttributeValue.display",
-            helpMessageKey = "kerberosCmd.userLockedAttributeValue.help", order = 6)
+            helpMessageKey = "kerberosCmd.userLockedAttributeValue.help", order = 10)
     public String getUserLockedAttributeValue() {
         return trimValue(userLockedAttributeValue);
     }
@@ -214,7 +246,7 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
     }
 
     @ConfigurationProperty(displayMessageKey = "kerberosCmd.userUnlockedAttributeValue.display",
-            helpMessageKey = "kerberosCmd.userUnlockedAttributeValue.help", order = 6)
+            helpMessageKey = "kerberosCmd.userUnlockedAttributeValue.help", order = 11)
     public String getUserUnlockedAttributeValue() {
         return trimValue(userUnlockedAttributeValue);
     }
@@ -224,7 +256,7 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
     }
 
     @ConfigurationProperty(displayMessageKey = "kerberosCmd.scriptErrorValue.display",
-            helpMessageKey = "kerberosCmd.scriptErrorValue.help", order = 7)
+            helpMessageKey = "kerberosCmd.scriptErrorValue.help", order = 12)
     public String getScriptErrorResponse() {
         return trimValue(scriptErrorResponse);
     }
@@ -233,22 +265,22 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
         this.scriptErrorResponse = scriptErrorResponse;
     }
 
-    @ConfigurationProperty(displayMessageKey = "kerberosCmd.scriptUpdateUsernameDeleteAdd.display",
-            helpMessageKey = "kerberosCmd.scriptUpdateUsernameDeleteAdd.help", order = 8)
-    public String getScriptUpdateUsernameDeleteAdd() {
-        return trimValue(scriptUpdateUsernameDeleteAdd);
+    @ConfigurationProperty(displayMessageKey = "kerberosCmd.scriptUpdateUsername.display",
+            helpMessageKey = "kerberosCmd.scriptUpdateUsername.help", order = 13)
+    public String getScriptUpdateUsername() {
+        return trimValue(scriptUpdateUsername);
     }
 
-    public void setScriptUpdateUsernameDeleteAdd(final String scriptUpdateUsernameDeleteAdd) {
-        this.scriptUpdateUsernameDeleteAdd = scriptUpdateUsernameDeleteAdd;
+    public void setScriptUpdateUsername(final String scriptUpdateUsername) {
+        this.scriptUpdateUsername = scriptUpdateUsername;
     }
 
     public boolean shouldScriptUpdateUsername() {
-        return convertStringToBoolean(getScriptUpdateUsernameDeleteAdd());
+        return convertStringToBoolean(getScriptUpdateUsername());
     }
 
     @ConfigurationProperty(displayMessageKey = "kerberosCmd.logPasswordConfig.display",
-            helpMessageKey = "kerberosCmd.logPasswordConfig.help", order = 8)
+            helpMessageKey = "kerberosCmd.logPasswordConfig.help", order = 14)
     public String getLogPasswordConfig() {
         return trimValue(logPasswordConfig);
     }
@@ -262,7 +294,7 @@ public class KerberosCmdConfiguration extends AbstractConfiguration {
     }
 
     @ConfigurationProperty(displayMessageKey = "kerberosCmd.shouldReturnUsernameDomain.display",
-            helpMessageKey = "kerberosCmd.shouldReturnUsernameDomain.help", order = 8)
+            helpMessageKey = "kerberosCmd.shouldReturnUsernameDomain.help", order = 15)
     public String getShouldReturnUsernameDomain() {
         return trimValue(shouldReturnUsernameDomain);
     }

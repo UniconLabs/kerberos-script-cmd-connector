@@ -31,9 +31,11 @@
                 <gen502:userUnlockedAttributeValue>false</gen502:userUnlockedAttributeValue>
                 <gen502:userLockedAttributeValue>true</gen502:userLockedAttributeValue>
                 <gen502:scriptErrorResponse>:error</gen502:scriptErrorResponse>
-                <gen502:scriptUpdateUsernameDeleteAdd>true</gen502:scriptUpdateUsernameDeleteAdd>
+                <gen502:scriptUpdateUsername>true</gen502:scriptUpdateUsername>
                 <gen502:logPasswordConfig>false</gen502:logPasswordConfig>
                 <gen502:shouldReturnUsernameDomain>false</gen502:shouldReturnUsernameDomain>
+                <gen502:passwordFilePath>/opt/midpoint/var/tmp</gen502:passwordFilePath>
+                <gen502:shouldSetPasswordsAsScriptArgument>false</gen502:shouldSetPasswordsAsScriptArgument>
             </icfc:configurationProperties>
             <icfc:timeouts>
                 <icfc:create>180000</icfc:create>
